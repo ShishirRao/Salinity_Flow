@@ -82,7 +82,7 @@ ggplot(WLR_Shar, aes(x=Date_time , y=kPa)) +
   xlab("")+
   scale_x_datetime(date_labels = "%b\n%d",date_breaks = "3 day")+theme_bw()
 
-ggsave("E:/Shishir/FieldData/Results/Shar_WLR.jpg", width = 8, height = 3,scale = 2)
+#ggsave("E:/Shishir/FieldData/Results/Shar_WLR.jpg", width = 8, height = 3,scale = 2)
 
 
 

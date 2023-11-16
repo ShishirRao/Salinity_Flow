@@ -39,4 +39,4 @@ ggplot(Sal[Sal$SlNo>5 & Sal$SlNo<20676,], aes(x=Date_time , y=Salinity)) +
   xlab("")+ ggtitle("Sharavathi Salinity")+
   scale_x_datetime(date_labels = "%b\n%d",date_breaks = "3 day")+theme_bw()
 
-ggsave("E:/Shishir/FieldData/Results/Shar_Salinity.jpg", width = 8, height = 3,scale = 2)
+#ggsave("E:/Shishir/FieldData/Results/Shar_Salinity.jpg", width = 8, height = 3,scale = 2)
