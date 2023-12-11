@@ -3,11 +3,14 @@ library(ggplot2)
 library(lubridate)
 library(tidyr)
 library(stringr)
+library(data.table)
+
 
 setwd("E:/Shishir/FieldData/SSC Lab/")
 
 #ssc = read.csv("SSC data_V1.csv",header=T)
-ssc = read.csv("SSC data_V2.csv",header=T)
+#ssc = read.csv("SSC data_V2.csv",header=T)
+ssc = read.csv("SSC data_V3.csv",header=T)
 
 #convert samples which took two filters in to a single row
 ssc[is.na(ssc$SSC..mg.l.),]
@@ -61,6 +64,32 @@ ssc$SSC..mg.l.[ssc$Filter.ID == 200] =
 # delete row 158
 ssc = ssc[ssc$Filter.ID != 201,]
 
+ssc$SSC..mg.l.[ssc$Filter.ID == 206] = 
+  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 206] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 207]-
+     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 206] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 207])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 206]
+# delete row 158
+ssc = ssc[ssc$Filter.ID != 207,]
+
+ssc$SSC..mg.l.[ssc$Filter.ID == 213] = 
+  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 213] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 214]-
+     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 213] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 214])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 213]
+# delete row 158
+ssc = ssc[ssc$Filter.ID != 214,]
+
+ssc$SSC..mg.l.[ssc$Filter.ID == 217] = 
+  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 217] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 218]-
+     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 217] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 218])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 217]
+# delete row 158
+ssc = ssc[ssc$Filter.ID != 218,]
+
+ssc$SSC..mg.l.[ssc$Filter.ID == 224] = 
+  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 224] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 225]-
+     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 224] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 225])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 224]
+# delete row 158
+ssc = ssc[ssc$Filter.ID != 225,]
+
+
+
 
 #In Kali, date is confusing for two sets of samples. The date is just called July. 
 # Put an approx date based on sampling schedule and the SSC value
@@ -76,12 +105,29 @@ ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 205] = "20-July
 
 # convert to date format
 ssc$Sampling.Date = parse_date_time(ssc$Sampling.Date,"d-b-y")
-head(ssc)
+ssc$Sampling.Date = as.Date(ssc$Sampling.Date)
+class(ssc$Sampling.Date)
+
+?parse_date_time
 
 # get month
-ssc$SamplingMonth = month(ssc$Sampling.Date,label = TRUE,abbr = TRUE)
+ssc$SamplingMonth = lubridate::month(ssc$Sampling.Date,label = TRUE,abbr = TRUE)
 
-todo = ssc %>% dplyr::group_by(River,Sampling.Date) %>% summarise(n = n())
+
+#create timeseries of sampling dates
+ScheduledDates = seq(as.Date('2023-03-30'),as.Date('2023-12-30'),by='8 days')
+Schedule = data.frame(ScheduledDates = ScheduledDates, ID = seq(1:length(ScheduledDates)))
+
+setDT(ssc)[, join_date := Sampling.Date]
+setDT(Schedule)[, join_date := ScheduledDates]
+ssc = Schedule[ssc, on = .(join_date), roll = "nearest"]
+
+ssc = ssc %>% select("Sl.No","Date.of.testing", "Sampling.Date","ScheduledDates","Sampling.time","River","Filter.ID",
+                     "SSC..mg.l.","Turbidity.1","Turbidity.2","Turbidity.3","Turbidity.4","Note","SamplingMonth")
+
+#summary
+todo = ssc %>% dplyr::group_by(SamplingMonth,River,ScheduledDates) %>% summarise(n = n())
+
 
 
 
@@ -91,8 +137,9 @@ class(ssc$Sampling.Date)
 class(ssc$River)
 
 ssc$River = as.factor(ssc$River)
-ggplot(ssc[ssc$Filter.ID,],aes(y = SSC..mg.l., x = Sampling.Date))+geom_point(aes(group = River,col = River))+
+ggplot(ssc,aes(y = SSC..mg.l., x = Sampling.Date))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River,method = "loess")) +
-  scale_x_datetime(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()
+  scale_x_date(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()
 
-?geom_smooth
+
+unique(ssc$River)
