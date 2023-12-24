@@ -43,6 +43,14 @@ ggplot(WLR[WLR$SlNo>10,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
   scale_x_datetime(date_labels = "%b\n%d",date_breaks = "10 day")+theme_bw()
+
+head(WLR)
+
+ggplot(WLR[WLR$Date_time>"2023-9-06",], aes(x=Date_time , y=kPa)) +
+  geom_line() + 
+  xlab("")+
+  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "8 day")+theme_bw()
+
  
 ##### Sharavathi ######
 
