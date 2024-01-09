@@ -37,6 +37,6 @@ Sal$Salinity = 0.4665*(Sal$Conductivity_uScm*0.001)^1.0878
 ggplot(Sal[Sal$SlNo>5 & Sal$SlNo<20676,], aes(x=Date_time , y=Salinity)) +
   geom_line() + 
   xlab("")+ ggtitle("Sharavathi Salinity")+
-  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "3 day")+theme_bw()
+  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "10 day")+theme_bw()
 
 #ggsave("E:/Shishir/FieldData/Results/Shar_Salinity.jpg", width = 8, height = 3,scale = 2)
