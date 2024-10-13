@@ -29,7 +29,9 @@ Sal$Salinity = 0.4665*(Sal$Conductivity_uScm*0.001)^1.0878
 
 ggplot(Sal, aes(x=Date_time , y=Salinity)) +
   geom_line() + 
-  xlab("")+ ggtitle("Gangavali Salinity")+
-  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "3 day")+theme_bw()
+  xlab("")+
+  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "20 day")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))
 
 #ggsave("E:/Shishir/FieldData/Results/Shar_Salinity.jpg", width = 8, height = 3,scale = 2)

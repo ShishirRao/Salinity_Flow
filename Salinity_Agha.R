@@ -47,9 +47,24 @@ ggplot(Sal[Sal$SlNo>5,], aes(x=Date_time , y=Salinity)) +
   xlab("")+ ggtitle("Aghanashini Salinity")+
   scale_x_datetime(date_labels = "%b\n%d",date_breaks = "10 day")+theme_bw()
 
+ggplot(Sal[Sal$SlNo,], aes(x=Date_time , y=Salinity)) +
+  geom_line() + 
+  xlab("")+ 
+  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "20 day")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))
+
+
 ##### Kali Salinity ####
-Sal = read.csv("Analysis/Salinity/Kali_Saltwater_23_dec.csv",header=T)
-names(Sal) = c("SlNo","Date_time","Conductivity_uScm","Temp_degC_Cond")
+Sal1 = read.csv("Analysis/Salinity/Kali_Saltwater_23_dec.csv",header=T)
+Sal2 = read.csv("Analysis/Salinity/Kali_Seawater_from_Agha_Apr29.csv",header=T)
+head(Sal2)
+
+
+names(Sal1) = c("SlNo","Date_time","Conductivity_uScm","Temp_degC_Cond")
+names(Sal2) = c("SlNo","Date_time","Conductivity_uScm","Temp_degC_Cond")
+Sal = rbind(Sal1,Sal2)
+Sal = Sal2
 Sal$Date_time = mdy_hm(Sal$Date_time)
 
 #Calculate Salinity from Conductivity
@@ -57,7 +72,10 @@ Sal$Salinity = 0.4665*(Sal$Conductivity_uScm*0.001)^1.0878
 
 ggplot(Sal, aes(x=Date_time , y=Salinity)) +
   geom_line() + 
-  xlab("")+ ggtitle("Kali Salinity")+
-  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "1 day")+theme_bw()
+  xlab("")+ 
+  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "10 day")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))
+
 
 

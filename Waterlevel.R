@@ -42,7 +42,9 @@ tail(WLR)
 ggplot(WLR[WLR$SlNo>10,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
-  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "10 day")+theme_bw()
+  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "10 day")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))
 
 head(WLR)
 
@@ -74,16 +76,27 @@ WLR8 = read.csv("Analysis/WaterLevel/Shara/Sharavathi_WLR2_30ft_Aug3.csv",header
 names(WLR8) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 head(WLR8)
 
-
 WLR9 = read.csv("Analysis/WaterLevel/Shara/Sharavathi_WLR2_30ftSep20.csv", header=T)
 names(WLR9) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 head(WLR9)
+
+WLR10 = read.csv("Analysis/WaterLevel/Shara/Sharavathi_WLR2_30ft_Nov_14_0.csv", header=T)
+names(WLR10) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
+head(WLR10)
+
+WLR11 = read.csv("Analysis/WaterLevel/Shara/Sharavathi_WLR2_30ft_Mar20_0.csv", header=T)
+names(WLR11) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
+head(WLR11)
+
+
 
 WLR_Shar = rbind(WLR4,WLR5)
 WLR_Shar = rbind(WLR_Shar,WLR6)
 WLR_Shar = rbind(WLR_Shar,WLR7)
 WLR_Shar = rbind(WLR_Shar,WLR8)
 WLR_Shar = rbind(WLR_Shar,WLR9)
+WLR_Shar = rbind(WLR_Shar,WLR10)
+WLR_Shar = rbind(WLR_Shar,WLR11)
 
 names(WLR_Shar) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 head(WLR_Shar)
@@ -94,7 +107,9 @@ WLR_Shar$Date_time = mdy_hm(WLR_Shar$Date_time)
 ggplot(WLR_Shar, aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
-  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "3 day")+theme_bw()
+  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "30 day")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))
 
 #ggsave("E:/Shishir/FieldData/Results/Shar_WLR.jpg", width = 8, height = 3,scale = 2)
 
@@ -133,7 +148,9 @@ WLR_Gang$Date_time = mdy_hm(WLR_Gang$Date_time)
 ggplot(WLR_Gang[WLR_Gang$SlNo>10,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
-  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "10 day")+theme_bw()
+  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "10 day")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))
 
 
 ### kali
@@ -167,5 +184,7 @@ WLR$Date_time = mdy_hm(WLR$Date_time)
 ggplot(WLR[WLR$SlNo>10,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
-  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "3 day")+theme_bw()
+  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "10 day")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))
 

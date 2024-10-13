@@ -139,7 +139,9 @@ class(ssc$River)
 ssc$River = as.factor(ssc$River)
 ggplot(ssc,aes(y = SSC..mg.l., x = Sampling.Date))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River,method = "loess")) +
-  scale_x_date(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()
+  scale_x_date(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))
 
 
 unique(ssc$River)
