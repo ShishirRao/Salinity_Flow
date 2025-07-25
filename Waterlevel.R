@@ -3,7 +3,7 @@ library(ggplot2)
 library(lubridate)
 library(tidyr)
 library(stringr)
-
+library(gridExtra)
 
 setwd("E:/Shishir/FieldData")
 
@@ -39,12 +39,15 @@ head(WLR)
 WLR$Date_time = mdy_hm(WLR$Date_time)
 tail(WLR)
 
-ggplot(WLR[WLR$SlNo>10,], aes(x=Date_time , y=kPa)) +
+WLR$kPa  / (103) * (9.81)
+
+Agha_WLR =  ggplot(WLR[WLR$SlNo>10,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
-  xlab("")+
-  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "10 day")+theme_bw()+
+  ylab(" ")+
+  xlab(" ")+
+  scale_x_datetime(date_labels = "%j",date_breaks = "60 day")+theme_bw()+
   theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14,face="bold"))
+        axis.title=element_text(size=13,face="bold"))
 
 head(WLR)
 
@@ -52,6 +55,13 @@ ggplot(WLR[WLR$Date_time>"2023-9-06",], aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
   scale_x_datetime(date_labels = "%b\n%d",date_breaks = "8 day")+theme_bw()
+
+ggplot(WLR, aes(x=Date_time , y=kPa)) +
+  geom_line() + 
+  xlab("")+ 
+  scale_x_datetime(date_labels = "%b-%d",date_breaks = "20 day")+theme_bw()+
+  theme(axis.text=element_text(size=16),
+        axis.title=element_text(size=18,face="bold"))
 
  
 ##### Sharavathi ######
@@ -104,12 +114,20 @@ tail(WLR_Shar)
 
 WLR_Shar$Date_time = mdy_hm(WLR_Shar$Date_time)
 
-ggplot(WLR_Shar, aes(x=Date_time , y=kPa)) +
+Shar_WLR = ggplot(WLR_Shar, aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
-  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "30 day")+theme_bw()+
+  ylab(" ")+
+  scale_x_datetime(date_labels = "%j",date_breaks = "70 day")+theme_bw()+
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=14,face="bold"))
+
+ggplot(WLR_Shar, aes(x=Date_time , y=kPa)) +
+  geom_line() + 
+  xlab("")+ 
+  scale_x_datetime(date_labels = "%b-%d",date_breaks = "40 day")+theme_bw()+
+  theme(axis.text=element_text(size=16),
+        axis.title=element_text(size=18,face="bold"))
 
 #ggsave("E:/Shishir/FieldData/Results/Shar_WLR.jpg", width = 8, height = 3,scale = 2)
 
@@ -145,14 +163,20 @@ names(WLR_Gang) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 
 WLR_Gang$Date_time = mdy_hm(WLR_Gang$Date_time)
 
-ggplot(WLR_Gang[WLR_Gang$SlNo>10,], aes(x=Date_time , y=kPa)) +
+Gang_WLR = ggplot(WLR_Gang[WLR_Gang$SlNo>10,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
-  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "10 day")+theme_bw()+
+  ylab(" ")+
+  scale_x_datetime(date_labels = "%j",date_breaks = "60 day")+theme_bw()+
   theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14,face="bold"))
+        axis.title=element_text(size=13,face="bold"))
 
-
+ggplot(WLR_Gang, aes(x=Date_time , y=kPa)) +
+  geom_line() + 
+  xlab("")+ 
+  scale_x_datetime(date_labels = "%b-%d",date_breaks = "20 day")+theme_bw()+
+  theme(axis.text=element_text(size=16),
+        axis.title=element_text(size=18,face="bold"))
 ### kali
 WLR1 = read.csv("Analysis/WaterLevel/Kali/Kali_WLR13ft_April30.csv",header=T)
 names(WLR1) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
@@ -170,10 +194,18 @@ WLR4 = read.csv("Analysis/WaterLevel/Kali/Kali_WLR_30ft_Sep7.csv",header=T)
 names(WLR4) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 head(WLR4)
 
+WLR5 = read.csv("Analysis/WaterLevel/Kali/Kali_30ft_Titanium_Dec12.csv",header=T)
+names(WLR5) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
+head(WLR5)
+
+
 
 WLR = rbind(WLR1,WLR2)
 WLR = rbind(WLR,WLR3)
 WLR = rbind(WLR,WLR4)
+WLR = rbind(WLR,WLR5)
+
+WLR = WLR5
 
 names(WLR) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 head(WLR)
@@ -181,10 +213,93 @@ head(WLR)
 WLR$Date_time = mdy_hm(WLR$Date_time)
 
 
-ggplot(WLR[WLR$SlNo>10,], aes(x=Date_time , y=kPa)) +
+Kali_WLR = ggplot(WLR[WLR$SlNo>10,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
-  scale_x_datetime(date_labels = "%b\n%d",date_breaks = "10 day")+theme_bw()+
+  ylab(" ")+
+  scale_x_datetime(date_labels = "%j",date_breaks = "60 day")+theme_bw()+
   theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14,face="bold"))
+        axis.title=element_text(size=13,face="bold"))
+
+
+ggplot(WLR[WLR$SlNo>2000,], aes(x=Date_time , y=kPa)) +
+  geom_line() + 
+  xlab("")+ 
+  scale_x_datetime(date_labels = "%b-%d",date_breaks = "20 day")+theme_bw()+
+  theme(axis.text=element_text(size=16),
+        axis.title=element_text(size=18,face="bold"))
+
+
+##################
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
+mylegend<-g_legend(Agha_WLR)
+
+?sapply
+
+WLRs <- grid.arrange(arrangeGrob(Agha_WLR + theme(legend.position="none") + ggtitle("Aghanashini (free)"),
+                                 Shar_WLR + theme(legend.position="none") + ggtitle("Sharavathi (dammed)"),
+                                 Gang_WLR + theme(legend.position="none") + ggtitle("Gangavali (free)"),
+                                 Kali_WLR + theme(legend.position="none") + ggtitle("Kali (dammed)"),
+                                          nrow=1,ncol=4),heights=c(6, 1))
+
+plot(WLRs)
+
+
+#ggsave("WLRs.jpg", WLRs, device = "jpg",path = "E:/Shishir/FieldData/Results/",
+#    scale = 1, width = 10, height = 3, 
+#     dpi = 300, limitsize = TRUE)
+
+
+
+Sals <- grid.arrange(arrangeGrob(Agha_sal + theme(legend.position="none"),
+                                 Shar_sal + theme(legend.position="none"),
+                                 Gang_sal + theme(legend.position="none"),
+                                 Kali_sal + theme(legend.position="none"),
+                                 nrow=1,ncol=4),heights=c(6, 1))
+
+#ggsave("Sals.jpg", Sals, device = "jpg",path = "E:/Shishir/FieldData/Results/",
+#    scale = 1, width = 10, height = 3, 
+#     dpi = 300, limitsize = TRUE)
 

@@ -144,4 +144,17 @@ ggplot(ssc,aes(y = SSC..mg.l., x = Sampling.Date))+geom_point(aes(group = River,
         axis.title=element_text(size=14,face="bold"))
 
 
+SSC = ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River))+
+  geom_smooth(aes(group = River,col = River,method = "loess")) +
+  xlab(" ")+ylab(" ")+
+  scale_x_date(date_labels = "%j",date_breaks = "60 day")+theme_bw()+
+  theme(axis.text=element_text(size=8),
+        axis.title=element_text(size=9,face="bold"))+
+  theme(legend.position="bottom")
+
+#ggsave("SSC.jpg", SSC, device = "jpg",path = "E:/Shishir/FieldData/Results/",
+#       scale = 1, width = 5, height = 3, 
+#       dpi = 300, limitsize = TRUE)
 unique(ssc$River)
+
+names(ssc)
