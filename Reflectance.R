@@ -145,3 +145,6 @@ Agh_lm = lm(log(ssc_agh$ssc_mean)~ssc_agh$avgRED)
 
 abline(Agh_lm)
 
+
+###### Kali ######
+

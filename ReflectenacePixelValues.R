@@ -13,7 +13,8 @@ setwd("E:/Shishir/FieldData/Analysis/Reflectance/")
 LandsatDates = data.frame("ImgDates" = seq(ymd("2023-01-09"),ymd("2023-12-27"), by = "8 days"))
 
 #pix = read.csv("pixelValues_v2.csv",header=T)
-pix = read.csv("pixelValues_v3.csv",header=T)
+#pix = read.csv("pixelValues_v3.csv",header=T)
+pix = read.csv("pixelValues_v4.csv",header=T)
 
 names(pix)
 head(pix)
@@ -35,6 +36,8 @@ pix = pix %>% filter(Red <= 0.5)
 pix = pix %>% group_by(site,ImgDates) %>% mutate(AvgRed = median(Red)) %>% select(site,ImgDates,River,AvgRed) 
 pix = pix %>% distinct()
 
+#common code until here
+
 ##### Aghanashini #####
 pix = pix %>% filter(River == "Agha")
 
@@ -47,10 +50,10 @@ pix_wide = pix %>% spread(site,AvgRed)
 
 # combine the values for each site based on cloud free data availability
 # Use mostly Agha_water_dry for dry season
-pix_wide$AghaSSC = pix_wide$Agha_water_dry
-pix_wide$AghaSSC[pix_wide$ImgDates == ymd("2023-08-05")] = pix_wide$Agha_water_wet1[pix_wide$ImgDates == ymd("2023-08-05")]
-pix_wide$AghaSSC[pix_wide$ImgDates == ymd("2023-07-28")] = pix_wide$Agha_water_wet2[pix_wide$ImgDates == ymd("2023-07-28")]
-pix_wide$AghaSSC[pix_wide$ImgDates == ymd("2023-08-21")] = pix_wide$Agha_water_wet2[pix_wide$ImgDates == ymd("2023-08-21")]
+pix_wide$Reflect = pix_wide$Agha_water_dry
+pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-05")] = pix_wide$Agha_water_wet1[pix_wide$ImgDates == ymd("2023-08-05")]
+pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-07-28")] = pix_wide$Agha_water_wet2[pix_wide$ImgDates == ymd("2023-07-28")]
+pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-21")] = pix_wide$Agha_water_wet2[pix_wide$ImgDates == ymd("2023-08-21")]
 pix_wide = pix_wide %>% select(-c(Agha_water_dry,Agha_water_wet1,Agha_water_wet2))
 
 
@@ -73,20 +76,25 @@ refl = left_join(LandsatDates,pix_wide)
 
 names(refl)
 names(ssc_mean)
+?join_by
 
-by <- join_by(River,closest(ImgDates >= Sampling.Date))
+#by <- join_by(River,closest(ImgDates >= Sampling.Date))
+
+by <- join_by(River,ImgDates == ScheduledDates)
 refl = left_join(refl,ssc_mean,by)
-
-refl$dateDiff = as.numeric(refl$ImgDates- refl$Sampling.Date)
-
-refl = refl %>% filter(dateDiff <= 4)
-
-#### plotting ####
-plot((refl$ssc_mean)~refl$AghaSSC)
+refl = refl[complete.cases(refl),]
 
 
-plot(log(refl$ssc_mean)~refl$AghaSSC)
-Agh_lm = lm(log(refl$ssc_mean)~refl$AghaSSC)
+#refl$dateDiff = as.numeric(refl$ImgDates- refl$Sampling.Date)
+
+#refl = refl %>% filter(dateDiff <= 4)
+
+#plotting
+plot((refl$ssc_mean)~refl$Reflect)
+
+
+plot(log(refl$ssc_mean)~refl$Reflect)
+Agh_lm = lm(log(refl$ssc_mean)~refl$Reflect)
 
 abline(Agh_lm)
 
@@ -112,29 +120,88 @@ names(ssc)
 ssc_mean =   ssc %>% select(c("Sampling.Date","ScheduledDates","SSC..mg.l.","SamplingMonth","River")) 
 ssc_mean = ssc_mean %>% group_by(ScheduledDates,River) %>% mutate(ssc_mean = mean(SSC..mg.l.))
 ssc_mean = ssc_mean %>% select(-SSC..mg.l.) %>% distinct()
-ssc_mean$Sampling.Date[ssc_mean$River == "Gangavali" & ssc_mean$Sampling.Date == ymd("2023-07-11")] = ymd("2023-07-28")
+# this is likely a mistake in the date
+#ssc_mean$ScheduledDates[ssc_mean$River == "Gangavali" & ssc_mean$ScheduledDates == ymd("2023-07-12")] = ymd("2023-07-28")
 
 names(ssc_mean)
 ssc_mean$logssc = log(ssc_mean$ssc_mean)
 ssc_mean = ssc_mean %>% filter(River == "Gangavali")
+levels(ssc_mean$River)[levels(ssc_mean$River) == "Gangavali"] <- "Gang"
 
 
 # Use mostly Agha_water_dry for dry season
-pix_wide$GangSSC = pix_wide$Gang_water_dry
-pix_wide$GangSSC[pix_wide$ImgDates == ymd("2023-05-25")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-05-25")]
-pix_wide$GangSSC[pix_wide$ImgDates == ymd("2023-07-20")] = pix_wide$Gang_water_wet2[pix_wide$ImgDates == ymd("2023-07-20")]
-pix_wide$GangSSC[pix_wide$ImgDates == ymd("2023-07-28")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-07-28")]
-pix_wide$GangSSC[pix_wide$ImgDates == ymd("2023-08-13")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-08-13")]
-pix_wide$GangSSC[pix_wide$ImgDates == ymd("2023-08-21")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-08-21")]
-pix_wide$GangSSC[pix_wide$ImgDates == ymd("2023-09-06")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-09-06")]
+pix_wide$Reflect = pix_wide$Gang_water_dry
+pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-05-25")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-05-25")]
+pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-07-20")] = pix_wide$Gang_water_wet2[pix_wide$ImgDates == ymd("2023-07-20")]
+pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-07-28")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-07-28")]
+pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-13")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-08-13")]
+pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-21")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-08-21")]
+pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-09-06")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-09-06")]
 pix_wide = pix_wide %>% select(-c(Gang_water_dry,Gang_water_wet1,Gang_water_wet2))
 
 
+
+
 refl = left_join(LandsatDates,pix_wide)
-by <- join_by(River,closest(ImgDates = Sampling.Date))
-refl = left_join(refl,ssc_mean)
+dev.off()
+ggplot(refl,aes(y = Reflect, x = ImgDates))+geom_point()+
+  geom_smooth() + ggtitle("all pixels_wet+dry season")+
+  scale_x_date(date_labels = "%b-%d",date_breaks = "8 day")+theme_bw()+
+  theme(axis.text=element_text(size=4),
+        axis.title=element_text(size=14,face="bold"))
 
-refl$dateDiff = as.numeric(refl$ImgDates- refl$Sampling.Date)
+by <- join_by(River,ImgDates == ScheduledDates)
+refl1 = left_join(refl1,ssc_mean,by)
+refl1 = refl1[complete.cases(refl1),]
 
-refl = refl %>% filter(dateDiff <= 4)
+plot((refl1$ssc_mean)~refl1$Reflect)
+
+
+plot(log(refl1$ssc_mean)~refl1$Reflect)
+Gang_lm = lm(log(refl1$ssc_mean)~refl1$Reflect)
+
+abline(Gang_lm)
+
+
+
+
+#### Kali ##### 
+
+pix = pix %>% filter(River == "Kali")
+pix_wide = pix %>% spread(site,AvgRed)
+
+
+#compute the median SSC for each sampling date
+## Now get ssc values and compute the median SSC for each sampling date
+ssc_mean =   ssc %>% select(c("Sampling.Date","ScheduledDates","SSC..mg.l.","SamplingMonth","River")) 
+ssc_mean = ssc_mean %>% group_by(ScheduledDates,River) %>% mutate(ssc_mean = mean(SSC..mg.l.))
+ssc_mean = ssc_mean %>% select(-SSC..mg.l.) %>% distinct()
+
+ssc_mean$logssc = log(ssc_mean$ssc_mean)
+ssc_mean = ssc_mean %>% filter(River == "Kali")
+
+# Use mostly Agha_water_dry for dry season
+pix_wide$Reflect = pix_wide$Kali_water_dry
+pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-21")] = pix_wide$Kali_water_wet1[pix_wide$ImgDates == ymd("2023-08-21")]
+pix_wide = pix_wide %>% select(-c(Kali_water_dry,Kali_water_wet1))
+
+refl = left_join(LandsatDates,pix_wide)
+ggplot(refl,aes(y = Reflect, x = ImgDates))+geom_point()+
+  geom_smooth() + ggtitle("all pixels_wet+dry season")+
+  scale_x_date(date_labels = "%b-%d",date_breaks = "16 day")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))
+
+by <- join_by(River,ImgDates == ScheduledDates)
+refl = left_join(refl,ssc_mean,by)
+refl = refl[complete.cases(refl),]
+
+plot((refl$ssc_mean)~refl$Reflect)
+
+
+plot(log(refl$ssc_mean)~refl$Reflect)
+Kali_lm = lm(log(refl$ssc_mean)~refl$Reflect)
+
+abline(Kali_lm)
+
 
