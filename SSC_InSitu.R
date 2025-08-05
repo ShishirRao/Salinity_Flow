@@ -10,10 +10,43 @@ setwd("E:/Shishir/FieldData/SSC Lab/")
 
 #ssc = read.csv("SSC data_V1.csv",header=T)
 #ssc = read.csv("SSC data_V2.csv",header=T)
-ssc = read.csv("SSC data_V3.csv",header=T)
+#ssc = read.csv("SSC data_V3.csv",header=T)
+ssc = read.csv("SSC data_V4.csv",header=T) # this is full data after completing data entry
+
+names(ssc)
+
+ssc$Note[grep("change", ssc$Note)]
+
+ssc$Filter.ID[grep("change", ssc$Note)]
 
 #convert samples which took two filters in to a single row
 ssc[is.na(ssc$SSC..mg.l.),]
+
+ssc$filterChangeID = NA
+ssc$filterChangeID[ssc$Filter.ID[grep("change", ssc$Note)]] = 
+  as.numeric((stri_sub(ssc$Note[grep("change", ssc$Note)],from = 18,to = 21)))
+
+
+FilterIDs = ssc$Filter.ID[grep("change", ssc$Note)]
+FilterChangeIDs = ssc$filterChangeID[ssc$Filter.ID[grep("change", ssc$Note)]] 
+
+for(i in 1:length(FilterIDs)){
+  if (!(is.na(ssc$Filter.weight.after.filtration..gm.[FilterIDs[i]]) | is.na(ssc$Filter.weight.after.filtration..gm.[FilterChangeIDs[i]]))){
+    ssc$SSC..mg.l.[FilterChangeIDs[i]] = 
+    (ssc$Filter.weight.after.filtration..gm.[FilterChangeIDs[i]] + ssc$Filter.weight.after.filtration..gm.[FilterIDs[i]]-
+       ssc$Filter.weight.before.filtration..gm.[FilterChangeIDs[i]] - ssc$Filter.weight.before.filtration..gm.[FilterIDs[i]])*1000/ssc$Volume.of.water..liters.[FilterChangeIDs[i]]
+  }
+  # 
+}
+
+
+
+  
+
+ssc[which(is.na(ssc$SSC..mg.l.) == TRUE),]
+ssc$SSC..mg.l.
+
+ssc[ssc$Filter.ID == 145,]
 
 # row no. 24 and 25
 ssc$SSC..mg.l.[ssc$Filter.ID == 24] = 
