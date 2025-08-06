@@ -12,8 +12,7 @@ setwd("E:/Shishir/FieldData/SSC Lab/")
 #ssc = read.csv("SSC data_V1.csv",header=T)
 #ssc = read.csv("SSC data_V2.csv",header=T)
 #ssc = read.csv("SSC data_V3.csv",header=T)
-ssc
-temp = read.csv("SSC data_V4.csv",header=T) # this is full data after completing data entry
+ssc = read.csv("SSC data_V4.csv",header=T) # this is full data after completing data entry
 
 ssc[ssc$Filter.ID == 357,]
 
