@@ -4,6 +4,7 @@ library(lubridate)
 library(tidyr)
 library(stringr)
 library(data.table)
+library(stringi)
 
 
 setwd("E:/Shishir/FieldData/SSC Lab/")
@@ -15,125 +16,98 @@ ssc = read.csv("SSC data_V4.csv",header=T) # this is full data after completing 
 
 names(ssc)
 
-ssc$Note[grep("change", ssc$Note)]
+#####calcualte SSC ######
 
+#Ignore that this is already done in excel. Just overwrite
+
+ssc$SSC..mg.l. = as.numeric((ssc$Filter.weight.after.filtration..gm.-ssc$Filter.weight.before.filtration..gm.)*1000/ssc$Volume.of.water..liters.)
+NAs = ssc[which(is.na(ssc$SSC..mg.l.) == TRUE),]
+
+# Read comments where "filter change" is mentioned
+ssc$Note[grep("change", ssc$Note)]
 ssc$Filter.ID[grep("change", ssc$Note)]
 
 #convert samples which took two filters in to a single row
-ssc[is.na(ssc$SSC..mg.l.),]
 
+#create a new row which contains information on filter ID of the row that took two filters
 ssc$filterChangeID = NA
 ssc$filterChangeID[ssc$Filter.ID[grep("change", ssc$Note)]] = 
   as.numeric((stri_sub(ssc$Note[grep("change", ssc$Note)],from = 18,to = 21)))
 
-
-FilterIDs = ssc$Filter.ID[grep("change", ssc$Note)]
+FilterIDs = ssc$Filter.ID[grep("change", ssc$Note)] 
 FilterChangeIDs = ssc$filterChangeID[ssc$Filter.ID[grep("change", ssc$Note)]] 
 
+#calculate SSC for samples that took two filters
 for(i in 1:length(FilterIDs)){
+  #ignore rows where after filtration weight is missing.
   if (!(is.na(ssc$Filter.weight.after.filtration..gm.[FilterIDs[i]]) | is.na(ssc$Filter.weight.after.filtration..gm.[FilterChangeIDs[i]]))){
-    ssc$SSC..mg.l.[FilterChangeIDs[i]] = 
-    (ssc$Filter.weight.after.filtration..gm.[FilterChangeIDs[i]] + ssc$Filter.weight.after.filtration..gm.[FilterIDs[i]]-
-       ssc$Filter.weight.before.filtration..gm.[FilterChangeIDs[i]] - ssc$Filter.weight.before.filtration..gm.[FilterIDs[i]])*1000/ssc$Volume.of.water..liters.[FilterChangeIDs[i]]
+    # ssc = ((after1 + after2) - (before1 + before2))*1000 / volume of the water sample
+    ssc$SSC..mg.l.[FilterChangeIDs[i]] = (ssc$Filter.weight.after.filtration..gm.[FilterChangeIDs[i]] + 
+                                         ssc$Filter.weight.after.filtration..gm.[FilterIDs[i]]-
+       ssc$Filter.weight.before.filtration..gm.[FilterChangeIDs[i]] - 
+       ssc$Filter.weight.before.filtration..gm.[FilterIDs[i]])*1000/ssc$Volume.of.water..liters.[FilterChangeIDs[i]]
   }
   # 
 }
 
+ssc$SSC..mg.l. = round(ssc$SSC..mg.l.,3)
+
+#now remove rows where the second filter was used
+ssc = ssc[which(is.na(ssc$SSC..mg.l.) == FALSE),]
 
 
-  
-
-ssc[which(is.na(ssc$SSC..mg.l.) == TRUE),]
-ssc$SSC..mg.l.
-
-ssc[ssc$Filter.ID == 145,]
-
-# row no. 24 and 25
-ssc$SSC..mg.l.[ssc$Filter.ID == 24] = 
-  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 24] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 25]-
-     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 24] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 25])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 24]
-# delete row 25
-ssc = ssc[ssc$Filter.ID != 25,]
-
-ssc$SSC..mg.l.[ssc$Filter.ID == 145] = 
-  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 145] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 158]-
-     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 145] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 158])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 145]
-# delete row 158
-ssc = ssc[ssc$Filter.ID != 158,]
-
-ssc$SSC..mg.l.[ssc$Filter.ID == 171] = 
-  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 171] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 172]-
-     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 171] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 172])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 171]
-# delete row 158
-ssc = ssc[ssc$Filter.ID != 172,]
-
-ssc$SSC..mg.l.[ssc$Filter.ID == 173] = 
-  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 173] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 174]-
-     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 173] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 174])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 173]
-# delete row 158
-ssc = ssc[ssc$Filter.ID != 174,]
-
-ssc$SSC..mg.l.[ssc$Filter.ID == 176] = 
-  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 176] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 177]-
-     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 176] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 177])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 176]
-# delete row 158
-ssc = ssc[ssc$Filter.ID != 177,]
-
-ssc$SSC..mg.l.[ssc$Filter.ID == 185] = 
-  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 185] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 186]-
-     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 185] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 186])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 185]
-# delete row 158
-ssc = ssc[ssc$Filter.ID != 186,]
-
-ssc$SSC..mg.l.[ssc$Filter.ID == 192] = 
-  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 192] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 193]-
-     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 192] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 193])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 192]
-# delete row 158
-ssc = ssc[ssc$Filter.ID != 193,]
-
-ssc$SSC..mg.l.[ssc$Filter.ID == 200] = 
-  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 200] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 201]-
-     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 200] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 201])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 200]
-# delete row 158
-ssc = ssc[ssc$Filter.ID != 201,]
-
-ssc$SSC..mg.l.[ssc$Filter.ID == 206] = 
-  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 206] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 207]-
-     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 206] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 207])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 206]
-# delete row 158
-ssc = ssc[ssc$Filter.ID != 207,]
-
-ssc$SSC..mg.l.[ssc$Filter.ID == 213] = 
-  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 213] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 214]-
-     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 213] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 214])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 213]
-# delete row 158
-ssc = ssc[ssc$Filter.ID != 214,]
-
-ssc$SSC..mg.l.[ssc$Filter.ID == 217] = 
-  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 217] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 218]-
-     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 217] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 218])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 217]
-# delete row 158
-ssc = ssc[ssc$Filter.ID != 218,]
-
-ssc$SSC..mg.l.[ssc$Filter.ID == 224] = 
-  (ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 224] + ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID == 225]-
-     ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 224] - ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID == 225])*1000/ssc$Volume.of.water..liters.[ssc$Filter.ID == 224]
-# delete row 158
-ssc = ssc[ssc$Filter.ID != 225,]
+#######next look at rows where either the date was confusing, or where there were issues with sampling or with filtration#####
+names(ssc)
+ssc = ssc %>% select(-c("Turbidity.1","Turbidity.2","Turbidity.3","Turbidity.4",
+                        "Volume.of.water..liters.", "Filter.weight.before.filtration..gm.",
+                        "Filter.weight.after.filtration..gm.","filterChangeID"))
 
 
-
-
-#In Kali, date is confusing for two sets of samples. The date is just called July. 
+#In Kali, sampling date is confusing for two sets of samples. The date is just called July. 
 # Put an approx date based on sampling schedule and the SSC value
-# the high value SSC must be from late July, and the low value SSC must be early July
-ssc[ssc$Sampling.Date == "July",]
-ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 134] = "20-July-23"
-ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 147] = "12-July-23"
-ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 150] = "12-July-23"
-ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 187] = "12-July-23"
-ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 192] = "20-July-23"
-ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 205] = "20-July-23"
+# In July, there are 4 sampling dates July 4, 12, 20 and 28. The bottles say that were
+# sampled on Thursday. 20th falls on Thursday. not sure the day can be relied upon
+# 134, 192 and 205 are higher values compared to 147, 150 and 187. 
+# the low value SSC must be early July because the range of SSC is comparable to June values. So this must be 4th July
+# Assigning the high value to 28th because there was a reservoir release around this period
+ssc[ssc$Sampling.Date == "July" & ssc$River == "Kali",]
+
+ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 134] = "04-July-23"
+ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 192] = "04-July-23"
+ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 205] = "04-July-23"
+
+ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 147] = "28-July-23"
+ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 150] = "28-July-23"
+ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 187] = "28-July-23"
+
+
+ssc$Sampling.Date = dmy(ssc$Sampling.Date) 
+
+#calculate a column which tells how many samples were collected. If there are replicates, then problematic rows can be discarded
+ssc = ssc %>% group_by(Sampling.Date,River) %>% mutate(Samplesize = n())
+
+
+#now let us address rows where sample size is more than 4 because at no sampling site, more than 4 replicates were collected
+high = ssc[ssc$Samplesize>4,]
+
+#on 6-10, Kali has 5 samples. One of the comments says the date was 02 but was struck down and re written as 10. 
+# but 6-2 Kali has only 3 samples. So, the missing one must be the struck down one. Filter ID 148
+ssc$Sampling.Date[ssc$River == "Kali" & ssc$Filter.ID == 148] = ymd("2023-06-02")
+
+#Next is Gangavali sample dated 2023-10-08. Clearly three values are extremely high SSC and there are low
+#In October, sampling dates are 10-8, 10-16 and 10-24. 
+#The higher values must be 10-16, because samples dated 10-24 are already present
+
+ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 273] = ymd("2023-10-16")
+ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 275] = ymd("2023-10-16")
+ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 322] = ymd("2023-10-16")
+
+#no more high values. 
+
+issue = ssc[which((ssc$Note) != ""),]
+
+
+
 
 
 # convert to date format
