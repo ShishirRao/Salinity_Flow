@@ -56,6 +56,12 @@ pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-07-28")] = pix_wide$Agha_water_w
 pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-21")] = pix_wide$Agha_water_wet2[pix_wide$ImgDates == ymd("2023-08-21")]
 pix_wide = pix_wide %>% select(-c(Agha_water_dry,Agha_water_wet1,Agha_water_wet2))
 
+ggplot(pix_wide,aes(y = Reflect, x = ImgDates))+geom_point()+
+  geom_smooth() + ggtitle("all pixels_wet+dry season")+
+  scale_x_date(date_labels = "%b-%d",date_breaks = "8 day")+theme_bw()+
+  theme(axis.text=element_text(size=4),
+        axis.title=element_text(size=14,face="bold"))
+
 
 names(ssc)
 ## Now get ssc values and compute the median SSC for each sampling date
@@ -65,7 +71,7 @@ ssc_mean = ssc_mean %>% select(-SSC..mg.l.) %>% distinct()
 names(ssc_mean)
 ssc_mean$logssc = log(ssc_mean$ssc_mean)
 #discard high SSC values from Oct and NOv
-ssc_mean = ssc_mean %>% filter(River == "Agha" & ScheduledDates < ymd("2023-10-16"))
+#ssc_mean = ssc_mean %>% filter(River == "Agha" & ScheduledDates < ymd("2023-10-16"))
 
 ?distinct
 
@@ -78,9 +84,9 @@ names(refl)
 names(ssc_mean)
 ?join_by
 
-#by <- join_by(River,closest(ImgDates >= Sampling.Date))
+by <- join_by(River,ImgDates == Sampling.Date)
 
-by <- join_by(River,ImgDates == ScheduledDates)
+#by <- join_by(River,ImgDates == ScheduledDates)
 refl = left_join(refl,ssc_mean,by)
 refl = refl[complete.cases(refl),]
 
@@ -123,42 +129,48 @@ ssc_mean = ssc_mean %>% select(-SSC..mg.l.) %>% distinct()
 # this is likely a mistake in the date
 #ssc_mean$ScheduledDates[ssc_mean$River == "Gangavali" & ssc_mean$ScheduledDates == ymd("2023-07-12")] = ymd("2023-07-28")
 
+
 names(ssc_mean)
 ssc_mean$logssc = log(ssc_mean$ssc_mean)
 ssc_mean = ssc_mean %>% filter(River == "Gangavali")
-levels(ssc_mean$River)[levels(ssc_mean$River) == "Gangavali"] <- "Gang"
+
+ssc_mean$River[ssc_mean$River == "Gangavali"] = "Gang"
+
+#levels(ssc_mean$River)[levels(ssc_mean$River) == "Gangavali"] <- "Gang"
 
 
 # Use mostly Agha_water_dry for dry season
 pix_wide$Reflect = pix_wide$Gang_water_dry
 pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-05-25")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-05-25")]
-pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-07-20")] = pix_wide$Gang_water_wet2[pix_wide$ImgDates == ymd("2023-07-20")]
+#pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-07-20")] = pix_wide$Gang_water_wet2[pix_wide$ImgDates == ymd("2023-07-20")]
 pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-07-28")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-07-28")]
 pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-13")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-08-13")]
 pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-21")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-08-21")]
 pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-09-06")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-09-06")]
+pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-11-01")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-11-01")]
+pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-12-03")] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-12-03")]
+
+
 pix_wide = pix_wide %>% select(-c(Gang_water_dry,Gang_water_wet1,Gang_water_wet2))
 
-
-
-
-refl = left_join(LandsatDates,pix_wide)
-dev.off()
-ggplot(refl,aes(y = Reflect, x = ImgDates))+geom_point()+
+ggplot(pix_wide,aes(y = Reflect, x = ImgDates))+geom_point()+
   geom_smooth() + ggtitle("all pixels_wet+dry season")+
   scale_x_date(date_labels = "%b-%d",date_breaks = "8 day")+theme_bw()+
   theme(axis.text=element_text(size=4),
         axis.title=element_text(size=14,face="bold"))
 
+
+refl = left_join(LandsatDates,pix_wide)
+
 by <- join_by(River,ImgDates == ScheduledDates)
-refl1 = left_join(refl1,ssc_mean,by)
-refl1 = refl1[complete.cases(refl1),]
+refl = left_join(refl,ssc_mean,by)
+refl = refl[complete.cases(refl),]
 
-plot((refl1$ssc_mean)~refl1$Reflect)
+plot((refl$ssc_mean)~refl$Reflect)
 
 
-plot(log(refl1$ssc_mean)~refl1$Reflect)
-Gang_lm = lm(log(refl1$ssc_mean)~refl1$Reflect)
+plot(log(refl$ssc_mean)~refl$Reflect)
+Gang_lm = lm(log(refl$ssc_mean)~refl$Reflect)
 
 abline(Gang_lm)
 

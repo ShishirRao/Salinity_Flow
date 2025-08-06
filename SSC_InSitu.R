@@ -12,7 +12,10 @@ setwd("E:/Shishir/FieldData/SSC Lab/")
 #ssc = read.csv("SSC data_V1.csv",header=T)
 #ssc = read.csv("SSC data_V2.csv",header=T)
 #ssc = read.csv("SSC data_V3.csv",header=T)
-ssc = read.csv("SSC data_V4.csv",header=T) # this is full data after completing data entry
+ssc
+temp = read.csv("SSC data_V4.csv",header=T) # this is full data after completing data entry
+
+ssc[ssc$Filter.ID == 357,]
 
 names(ssc)
 
@@ -107,13 +110,11 @@ ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 322] = ymd("2023-1
 issue = ssc[which((ssc$Note) != ""),]
 
 
+(ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID==12] - 
+  ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID==12])*1000/0.49
 
+ssc$Volume.of.water..liters.[ssc$Filter.ID==12]
 
-
-# convert to date format
-ssc$Sampling.Date = parse_date_time(ssc$Sampling.Date,"d-b-y")
-ssc$Sampling.Date = as.Date(ssc$Sampling.Date)
-class(ssc$Sampling.Date)
 
 ?parse_date_time
 
@@ -144,14 +145,15 @@ class(ssc$Sampling.Date)
 class(ssc$River)
 
 ssc$River = as.factor(ssc$River)
-ggplot(ssc,aes(y = SSC..mg.l., x = Sampling.Date))+geom_point(aes(group = River,col = River))+
+
+ggplot(ssc[ssc$River == "Agha",],aes(y = SSC..mg.l., x = Sampling.Date))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River,method = "loess")) +
   scale_x_date(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=14,face="bold"))
 
 
-SSC = ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River))+
+ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River,method = "loess")) +
   xlab(" ")+ylab(" ")+
   scale_x_date(date_labels = "%j",date_breaks = "60 day")+theme_bw()+
