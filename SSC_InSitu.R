@@ -129,8 +129,8 @@ setDT(ssc)[, join_date := Sampling.Date]
 setDT(Schedule)[, join_date := ScheduledDates]
 ssc = Schedule[ssc, on = .(join_date), roll = "nearest"]
 
-ssc = ssc %>% select("Sl.No","Date.of.testing", "Sampling.Date","ScheduledDates","Sampling.time","River","Filter.ID",
-                     "SSC..mg.l.","Turbidity.1","Turbidity.2","Turbidity.3","Turbidity.4","Note","SamplingMonth")
+#ssc = ssc %>% select("Sl.No","Date.of.testing", "Sampling.Date","ScheduledDates","Sampling.time","River","Filter.ID",
+#                     "SSC..mg.l.","Turbidity.1","Turbidity.2","Turbidity.3","Turbidity.4","Note","SamplingMonth")
 
 #summary
 todo = ssc %>% dplyr::group_by(SamplingMonth,River,ScheduledDates) %>% summarise(n = n())
@@ -145,7 +145,7 @@ class(ssc$River)
 
 ssc$River = as.factor(ssc$River)
 
-ggplot(ssc[ssc$River == "Agha",],aes(y = SSC..mg.l., x = Sampling.Date))+geom_point(aes(group = River,col = River))+
+ggplot(ssc,aes(y = SSC..mg.l., x = Sampling.Date))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River,method = "loess")) +
   scale_x_date(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=12),
@@ -153,10 +153,10 @@ ggplot(ssc[ssc$River == "Agha",],aes(y = SSC..mg.l., x = Sampling.Date))+geom_po
 
 
 ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River,method = "loess")) +
+  geom_smooth(aes(group = River,col = River,method = "auto")) +
   xlab(" ")+ylab(" ")+
-  scale_x_date(date_labels = "%j",date_breaks = "60 day")+theme_bw()+
-  theme(axis.text=element_text(size=8),
+  scale_x_date(date_labels = "%b-%d",date_breaks = "8 day")+theme_bw()+
+  theme(axis.text=element_text(size=5),
         axis.title=element_text(size=9,face="bold"))+
   theme(legend.position="bottom")
 
@@ -166,3 +166,5 @@ ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = R
 unique(ssc$River)
 
 names(ssc)
+
+?geom_smooth
