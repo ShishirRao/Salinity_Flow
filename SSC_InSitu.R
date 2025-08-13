@@ -144,7 +144,7 @@ class(ssc$River)
 
 ssc$River = as.factor(ssc$River)
 
-ggplot(ssc[ssc$River == "Sharavathi",],aes(y = SSC..mg.l., x = Sampling.Date))+geom_point(aes(group = River,col = River))+
+ggplot(ssc,aes(y = SSC..mg.l., x = Sampling.Date))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River,method = "loess")) +
   scale_x_date(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=12),
@@ -153,10 +153,10 @@ ggplot(ssc[ssc$River == "Sharavathi",],aes(y = SSC..mg.l., x = Sampling.Date))+g
 
 ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River,method = "auto")) +
-  xlab(" ")+ylab(" ")+
-  scale_x_date(date_labels = "%b-%d",date_breaks = "8 day")+theme_bw()+
-  theme(axis.text=element_text(size=5),
-        axis.title=element_text(size=9,face="bold"))+
+  xlab(" ")+ylab("log(SSC) ")+
+  scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=12,face="bold"))+
   theme(legend.position="bottom")
 
 #ggsave("SSC.jpg", SSC, device = "jpg",path = "E:/Shishir/FieldData/Results/",

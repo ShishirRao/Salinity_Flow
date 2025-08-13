@@ -32,6 +32,8 @@ WLR = rbind(WLR1,WLR2)
 WLR = rbind(WLR,WLR3)
 WLR = rbind(WLR,WLR4)
 WLR = rbind(WLR,WLR5)
+WLR_Agha = WLR
+WLR_Agha$River = "Agha"
 
 names(WLR) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 head(WLR)
@@ -45,7 +47,7 @@ Agha_WLR =  ggplot(WLR[WLR$SlNo>10,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
   ylab(" ")+
   xlab(" ")+
-  scale_x_datetime(date_labels = "%j",date_breaks = "60 day")+theme_bw()+
+  scale_x_datetime(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=13,face="bold"))
 
@@ -62,6 +64,7 @@ ggplot(WLR, aes(x=Date_time , y=kPa)) +
   scale_x_datetime(date_labels = "%b-%d",date_breaks = "20 day")+theme_bw()+
   theme(axis.text=element_text(size=16),
         axis.title=element_text(size=18,face="bold"))
+
 
  
 ##### Sharavathi ######
@@ -113,12 +116,13 @@ head(WLR_Shar)
 tail(WLR_Shar)
 
 WLR_Shar$Date_time = mdy_hm(WLR_Shar$Date_time)
+WLR_Shar$River = "Shar"
 
 Shar_WLR = ggplot(WLR_Shar, aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
   ylab(" ")+
-  scale_x_datetime(date_labels = "%j",date_breaks = "70 day")+theme_bw()+
+  scale_x_datetime(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=14,face="bold"))
 
@@ -163,11 +167,13 @@ names(WLR_Gang) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 
 WLR_Gang$Date_time = mdy_hm(WLR_Gang$Date_time)
 
+WLR_Gang$River = "Gang"
+
 Gang_WLR = ggplot(WLR_Gang[WLR_Gang$SlNo>10,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
   ylab(" ")+
-  scale_x_datetime(date_labels = "%j",date_breaks = "60 day")+theme_bw()+
+  scale_x_datetime(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=13,face="bold"))
 
@@ -217,7 +223,7 @@ Kali_WLR = ggplot(WLR[WLR$SlNo>10,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
   ylab(" ")+
-  scale_x_datetime(date_labels = "%j",date_breaks = "60 day")+theme_bw()+
+  scale_x_datetime(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=13,face="bold"))
 
@@ -290,6 +296,13 @@ WLRs <- grid.arrange(arrangeGrob(Agha_WLR + theme(legend.position="none") + ggti
                                  Gang_WLR + theme(legend.position="none") + ggtitle("Gangavali (free)"),
                                  Kali_WLR + theme(legend.position="none") + ggtitle("Kali (dammed)"),
                                           nrow=1,ncol=4),heights=c(6, 1))
+
+WLRs <- grid.arrange(arrangeGrob(Agha_WLR + theme(legend.position="none") + ggtitle("Aghanashini (free)"),
+                                 Shar_WLR + theme(legend.position="none") + ggtitle("Sharavathi (dammed)"),
+                                 Gang_WLR + theme(legend.position="none") + ggtitle("Gangavali (free)"),
+                                 Kali_WLR + theme(legend.position="none") + ggtitle("Kali (dammed)"),
+                                 nrow=2,ncol=2),heights=c(6, 1))
+
 
 plot(WLRs)
 

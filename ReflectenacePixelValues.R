@@ -5,6 +5,9 @@ library(tidyr)
 library(stringr)
 library(ggrepel)
 library(stringi)
+library(broom)
+library(broom.mixed)
+library(tidyr)
 
 setwd("E:/Shishir/FieldData/Analysis/Reflectance/")
 
@@ -71,6 +74,12 @@ ggplot(refl_long,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,co
   geom_smooth(aes(group = River,col = River)) + facet_wrap(~Band) + ggtitle("Reflectance")+
   scale_x_date(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=6),
+        axis.title=element_text(size=14,face="bold"))
+
+ggplot(refl_long %>% filter(Band == "AvgRed"),aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
+  geom_smooth(aes(group = River,col = River)) + ggtitle("Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
+  theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))
 
 
@@ -140,15 +149,46 @@ by <- join_by(River,ImgDates == Sampling.Date)
 refl_long = left_join(refl_long,ssc_mean,by)
 refl_long = refl_long[complete.cases(refl_long),]
 
-
-temp = refl_long %>% filter(Band == "AvgGreen")
 # plot log(ssc)~Reflect for each band combination
-ggplot(refl_long,aes(y = logssc, x = Reflect))+geom_point()+
+ggplot(refl_long %>% filter(Band == "AvgRed"),aes(y = logssc, x = Reflect))+geom_point()+
   stat_summary(fun.data= mean_cl_normal) + 
-  geom_smooth(method='lm') +facet_grid(Band~River, scales = "free")+
-  ggtitle("Log(ssc) vs reflectance")+theme_bw()+ xlab("Red reflectance") +ylab("Log SSC")+
+  geom_smooth(method='lm') +facet_wrap(~River, scales = "free")+
+  ggtitle("Log(ssc) vs reflectance")+theme_bw()+ xlab("Reflectance") +ylab("Log SSC")+
   theme(axis.text=element_text(size=14),
         axis.title=element_text(size=14,face="bold"))
+
+model = refl_long %>% nest_by(River)
+
+model = refl_long %>% filter(Band == "AvgRed") %>% group_by(River) %>%
+  mutate(mod = list(lm(logssc ~ Reflect)))
+
+reframe(tidy(model$mod))
+
+unique(model$mod)
+
+list_of_dfs <- split(refl_long, refl_long$River)
+
+?nest_by
+
+
+
+
+
+
+
+ggplotRegression <- function (fit) {
+  require(ggplot2)
+  ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) + 
+    geom_point() +
+    stat_smooth(method = "lm", col = "red") +
+    labs(title = paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5),
+                       "Intercept =",signif(fit$coef[[1]],5 ),
+                       " Slope =",signif(fit$coef[[2]], 5),
+                       " P =",signif(summary(fit)$coef[2,4], 5)))
+}
+
+fit1 = lm(refl_long)
+ggplotRegression()
 
 
 
@@ -158,4 +198,13 @@ Agh_lm = lm(log(refl$ssc_mean)~refl$Reflect)
 abline(Agh_lm)
 
 
+
+data = refl_long %>% filter(River == "Agha" & Band == "AvgRed") 
+model = lm(data$logssc~data$Reflect)
+summary(model)
+
+data = refl_long %>% filter(River == "Shar" & Band == "AvgRed") 
+Agha_lm = lm(data$logssc~data$Reflect)
+summary = summary(Agha_lm)
+summary$adj.r.squared
 
