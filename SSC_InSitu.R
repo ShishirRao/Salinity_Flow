@@ -12,7 +12,8 @@ setwd("E:/Shishir/FieldData/SSC Lab/")
 #ssc = read.csv("SSC data_V1.csv",header=T)
 #ssc = read.csv("SSC data_V2.csv",header=T)
 #ssc = read.csv("SSC data_V3.csv",header=T)
-ssc = read.csv("SSC data_V4.csv",header=T) # this is full data after completing data entry
+#ssc = read.csv("SSC data_V4.csv",header=T) # this is full data after completing data entry
+ssc = read.csv("SSC data_V5.csv",header=T) # Volume was wrong for filter ID 145. Corrected it here
 
 unique(ssc$River)
 
@@ -57,11 +58,17 @@ ssc$SSC..mg.l. = round(ssc$SSC..mg.l.,3)
 ssc = ssc[which(is.na(ssc$SSC..mg.l.) == FALSE),]
 
 
+#process turbidity by taking mean of 3 / 4 samples 
+ssc$Turbidity =ifelse(is.na(ssc$Turbidity.4),
+                      (ssc$Turbidity.1 + ssc$Turbidity.2 + ssc$Turbidity.3)/3,
+                      (ssc$Turbidity.1 + ssc$Turbidity.2 + ssc$Turbidity.3 + ssc$Turbidity.4)/4)
+
 #######next look at rows where either the date was confusing, or where there were issues with sampling or with filtration#####
 names(ssc)
 ssc = ssc %>% select(-c("Turbidity.1","Turbidity.2","Turbidity.3","Turbidity.4",
                         "Volume.of.water..liters.", "Filter.weight.before.filtration..gm.",
                         "Filter.weight.after.filtration..gm.","filterChangeID"))
+
 
 
 #In Kali, sampling date is confusing for two sets of samples. The date is just called July. 
@@ -103,15 +110,11 @@ ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 273] = ymd("2023-1
 ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 275] = ymd("2023-10-16")
 ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 322] = ymd("2023-10-16")
 
-#no more high values. 
+#no more high values where sample size > 4. 
 
 issue = ssc[which((ssc$Note) != ""),]
 
 
-(ssc$Filter.weight.after.filtration..gm.[ssc$Filter.ID==12] - 
-  ssc$Filter.weight.before.filtration..gm.[ssc$Filter.ID==12])*1000/0.49
-
-ssc$Volume.of.water..liters.[ssc$Filter.ID==12]
 
 
 ?parse_date_time
@@ -162,10 +165,13 @@ ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = R
 #ggsave("SSC.jpg", SSC, device = "jpg",path = "E:/Shishir/FieldData/Results/",
 #       scale = 1, width = 5, height = 3, 
 #       dpi = 300, limitsize = TRUE)
-unique(ssc$River)
-
-names(ssc)
 
 
-unique(ssc$River)
-levels(ssc$River)
+###### check if turbidity and SSC have a relationship ##### 
+
+
+ggplot(ssc[ssc$SSC..mg.l.<150 & ssc$SSC..mg.l.>0,],aes(x = Turbidity,y = (SSC..mg.l.)))+geom_point(aes(group = River,col = River))+
+  theme_bw()+xlab("Turbidity") + ylab("SSC") +ggtitle("SSC vs turbidity")+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))
+
