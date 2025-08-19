@@ -120,6 +120,11 @@ high = ssc[ssc$Samplesize>4,]
 # remove all the confusing samples based on the notes
 issue = ssc[which((ssc$Note) != ""),]
 
+
+# In Aghanashini, there are two samples with confusing dates.
+
+
+
 ssc = ssc[-grep("confusing", ssc$Note,ignore.case = TRUE),]
 ssc = ssc[-grep("ants", ssc$Note,ignore.case = TRUE),]
 ssc = ssc[-grep("bottle", ssc$Note,ignore.case = TRUE),]
