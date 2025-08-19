@@ -126,13 +126,7 @@ ggplot(refl_long,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,co
         axis.title=element_text(size=14,face="bold"))
 
 ggplot(refl_long %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River),span = 0.5) + ggtitle("Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance")+
-  scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
-  theme(axis.text=element_text(size=13),
-        axis.title=element_text(size=14,face="bold"))
-
-ggplot(refl_long %>% filter(Band == "AvgRedbyNIR") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River),span = 0.5) + ggtitle("Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  geom_smooth(aes(group = River,col = River),span = 0.4) + ggtitle("Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance")+
   scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))
@@ -140,21 +134,6 @@ ggplot(refl_long %>% filter(Band == "AvgRedbyNIR") ,aes(y = Reflect, x = ImgDate
 
 
 
-
-
-# Now get the ssc data ready
-names(ssc)
-## Now get ssc values and compute the median SSC for each sampling date
-ssc_mean =   ssc %>% select(c("Sampling.Date","ScheduledDates","SSC..mg.l.","SamplingMonth","River")) 
-# calculate mean SSC
-ssc_mean = ssc_mean %>% group_by(Sampling.Date,ScheduledDates,River) %>% mutate(ssc_mean = mean(SSC..mg.l.))
-ssc_mean = ssc_mean %>% select(-SSC..mg.l.) %>% distinct()
-
-ssc_mean$logssc = log(ssc_mean$ssc_mean)
-
-# rename the levels so that it matches with refletance data set
-levels(ssc_mean$River)[levels(ssc_mean$River) == "Gangavali"] <- "Gang"
-levels(ssc_mean$River)[levels(ssc_mean$River) == "Sharavathi"] <- "Shar"
 
 #combine ssc and reflectance datasets
 by <- join_by(River,ImgDates == Sampling.Date)
@@ -162,15 +141,19 @@ refl_long = left_join(refl_long,ssc_mean,by)
 refl_long = refl_long[complete.cases(refl_long),]
 
 # plot log(ssc)~Reflect for each band combination
-ggplot(refl_long %>% filter(Band == "AvgRed"),aes(y = logssc, x = Reflect))+geom_point()+
+SSCvsRedv2 = ggplot(refl_long %>% filter(Band == "AvgRed"),aes(y = logssc, x = Reflect))+geom_point()+
   stat_summary(fun.data= mean_cl_normal) + 
   geom_smooth(method='lm') +facet_wrap(~River, scales = "free")+
   ggtitle("Log(ssc) vs reflectance")+theme_bw()+ xlab("Reflectance") +ylab("Log SSC")+
   theme(axis.text=element_text(size=14),
         axis.title=element_text(size=14,face="bold"))
 
+ggsave("SSCvsRedv2.jpg", SSCvsRedv2, device = "jpg",path = "E:/Shishir/FieldData/Results/",
+      scale = 3, width = 5, height = 3,
+      dpi = 300, limitsize = TRUE)
+
 # plot log(ssc)~Reflect for each band combination
-ggplot(refl_long %>% filter(Band == "AvgRed"),aes(y = logssc, x = Reflect))+
+SSCvsRed_allRiversv2 = ggplot(refl_long %>% filter(Band == "AvgRed"),aes(y = logssc, x = Reflect))+
   geom_point(aes(fill = River,color = River))+
   #stat_summary(fun.data= mean_cl_normal) + 
   geom_smooth(method='lm') +
@@ -178,23 +161,9 @@ ggplot(refl_long %>% filter(Band == "AvgRed"),aes(y = logssc, x = Reflect))+
   theme(axis.text=element_text(size=14),
         axis.title=element_text(size=14,face="bold"))
 
-
-# Get lm coefficients for each river. 
-model = refl_long %>% nest_by(River)
-
-model = refl_long %>% filter(Band == "AvgRed") %>% group_by(River) %>%
-  mutate(mod = list(lm(logssc ~ Reflect)))
-
-reframe(tidy(model$mod))
-
-unique(model$mod)
-
-list_of_dfs <- split(refl_long, refl_long$River)
-
-?nest_by
-
-
-##
+ggsave("SSCvsRed_allRiversv2.jpg", SSCvsRed_allRiversv2, device = "jpg",path = "E:/Shishir/FieldData/Results/",
+       scale = 3, width = 5, height = 3,
+       dpi = 300, limitsize = TRUE)
 
 
 
@@ -210,7 +179,7 @@ ggplotRegression <- function (fit) {
                        " P =",signif(summary(fit)$coef[2,4], 5)))
 }
 
-fit1 = lm(logssc ~ Reflect, data = refl_long %>% filter(Band == "AvgRed") %>% filter(River == "Agha" | River == "Gang"))
+fit1 = lm(logssc ~ Reflect, data = refl_long %>% filter(Band == "AvgRed") %>% filter(River == "Agha"))
 summary(fit1)
 ggplotRegression(fit1)
 

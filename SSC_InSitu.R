@@ -13,7 +13,8 @@ setwd("E:/Shishir/FieldData/SSC Lab/")
 #ssc = read.csv("SSC data_V2.csv",header=T)
 #ssc = read.csv("SSC data_V3.csv",header=T)
 #ssc = read.csv("SSC data_V4.csv",header=T) # this is full data after completing data entry
-ssc = read.csv("SSC data_V5.csv",header=T) # Volume was wrong for filter ID 145. Corrected it here
+#ssc = read.csv("SSC data_V5.csv",header=T) # Volume was wrong for filter ID 145. Corrected it here
+ssc = read.csv("SSC data_V6.csv",header=T) # Volume was wrong for filter ID 145. Corrected it here
 
 unique(ssc$River)
 
@@ -63,13 +64,13 @@ ssc$Turbidity =ifelse(is.na(ssc$Turbidity.4),
                       (ssc$Turbidity.1 + ssc$Turbidity.2 + ssc$Turbidity.3)/3,
                       (ssc$Turbidity.1 + ssc$Turbidity.2 + ssc$Turbidity.3 + ssc$Turbidity.4)/4)
 
-#######next look at rows where either the date was confusing, or where there were issues with sampling or with filtration#####
+## removes columns that are no longer useful
 names(ssc)
 ssc = ssc %>% select(-c("Turbidity.1","Turbidity.2","Turbidity.3","Turbidity.4",
                         "Volume.of.water..liters.", "Filter.weight.before.filtration..gm.",
                         "Filter.weight.after.filtration..gm.","filterChangeID"))
 
-
+#######next look at rows where either the date was confusing, or where there were issues with sampling or with filtration#####
 
 #In Kali, sampling date is confusing for two sets of samples. The date is just called July. 
 # Put an approx date based on sampling schedule and the SSC value
@@ -110,14 +111,25 @@ ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 273] = ymd("2023-1
 ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 275] = ymd("2023-10-16")
 ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 322] = ymd("2023-10-16")
 
+ssc = ssc %>% group_by(Sampling.Date,River) %>% mutate(Samplesize = n())
+high = ssc[ssc$Samplesize>4,]
+
 #no more high values where sample size > 4. 
 
+
+# remove all the confusing samples based on the notes
 issue = ssc[which((ssc$Note) != ""),]
 
+ssc = ssc[-grep("confusing", ssc$Note,ignore.case = TRUE),]
+ssc = ssc[-grep("ants", ssc$Note,ignore.case = TRUE),]
+ssc = ssc[-grep("bottle", ssc$Note,ignore.case = TRUE),]
+ssc = ssc[-grep("estimate", ssc$Note,ignore.case = TRUE),]
+ssc = ssc[-grep("unknown", ssc$Note,ignore.case = TRUE),]
+ssc = ssc[-grep("confusion", ssc$Note,ignore.case = TRUE),]
+ssc = ssc[-grep("vessel", ssc$Note,ignore.case = TRUE),]
+ssc = ssc[-grep("forgot", ssc$Note,ignore.case = TRUE),]
 
-
-
-?parse_date_time
+issue = ssc[which((ssc$Note) != ""),] # these remaining ones are just comments. 
 
 # get month
 ssc$SamplingMonth = lubridate::month(ssc$Sampling.Date,label = TRUE,abbr = TRUE)
@@ -127,34 +139,21 @@ ssc$SamplingMonth = lubridate::month(ssc$Sampling.Date,label = TRUE,abbr = TRUE)
 ScheduledDates = seq(as.Date('2023-03-30'),as.Date('2023-12-30'),by='8 days')
 Schedule = data.frame(ScheduledDates = ScheduledDates, ID = seq(1:length(ScheduledDates)))
 
+#join based on closes sampling data and imagery date
 setDT(ssc)[, join_date := Sampling.Date]
 setDT(Schedule)[, join_date := ScheduledDates]
 ssc = Schedule[ssc, on = .(join_date), roll = "nearest"]
 
-#ssc = ssc %>% select("Sl.No","Date.of.testing", "Sampling.Date","ScheduledDates","Sampling.time","River","Filter.ID",
-#                     "SSC..mg.l.","Turbidity.1","Turbidity.2","Turbidity.3","Turbidity.4","Note","SamplingMonth")
-
-#summary
-todo = ssc %>% dplyr::group_by(SamplingMonth,River,ScheduledDates) %>% summarise(n = n())
-
-
-
-
-is.na(ssc$Sampling.Date)
-is.na(ssc$River)
-class(ssc$Sampling.Date)
-class(ssc$River)
-
 ssc$River = as.factor(ssc$River)
+# 
+# ggplot(ssc,aes(y = SSC..mg.l., x = Sampling.Date))+geom_point(aes(group = River,col = River))+
+#   geom_smooth(aes(group = River,col = River,method = "loess")) +
+#   scale_x_date(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()+
+#   theme(axis.text=element_text(size=12),
+#         axis.title=element_text(size=14,face="bold"))
 
-ggplot(ssc,aes(y = SSC..mg.l., x = Sampling.Date))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River,method = "loess")) +
-  scale_x_date(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()+
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14,face="bold"))
 
-
-ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River))+
+ssc_onlyCleandata = ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River,method = "auto"),span = 0.5) +
   xlab(" ")+ylab("log(SSC) ")+ ggtitle("Reflectance")+
   scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
@@ -162,8 +161,8 @@ ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = R
         axis.title=element_text(size=12,face="bold"))+
   theme(legend.position="bottom")
 
-#ggsave("SSC.jpg", SSC, device = "jpg",path = "E:/Shishir/FieldData/Results/",
-#       scale = 1, width = 5, height = 3, 
+# ggsave("ssc_onlyCleandata.jpg", ssc_onlyCleandata, device = "jpg",path = "E:/Shishir/FieldData/Results/",
+#       scale = 3, width = 5, height = 3,
 #       dpi = 300, limitsize = TRUE)
 
 
@@ -174,4 +173,18 @@ ggplot(ssc[ssc$SSC..mg.l.<150 & ssc$SSC..mg.l.>0,],aes(x = Turbidity,y = (SSC..m
   theme_bw()+xlab("Turbidity") + ylab("SSC") +ggtitle("SSC vs turbidity")+
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=14,face="bold"))
+
+
+
+######## Now get ssc values and compute the median SSC for each sampling date #######
+ssc_mean =   ssc %>% select(c("Sampling.Date","ScheduledDates","SSC..mg.l.","SamplingMonth","River")) 
+# calculate mean SSC
+ssc_mean = ssc_mean %>% group_by(Sampling.Date,ScheduledDates,River) %>% mutate(ssc_mean = mean(SSC..mg.l.))
+ssc_mean = ssc_mean %>% select(-SSC..mg.l.) %>% distinct()
+
+ssc_mean$logssc = log(ssc_mean$ssc_mean)
+
+# rename the levels so that it matches with refletance data set
+levels(ssc_mean$River)[levels(ssc_mean$River) == "Gangavali"] <- "Gang"
+levels(ssc_mean$River)[levels(ssc_mean$River) == "Sharavathi"] <- "Shar"
 
