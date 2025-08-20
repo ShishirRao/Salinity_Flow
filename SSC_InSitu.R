@@ -72,6 +72,8 @@ ssc = ssc %>% select(-c("Turbidity.1","Turbidity.2","Turbidity.3","Turbidity.4",
 
 #######next look at rows where either the date was confusing, or where there were issues with sampling or with filtration#####
 
+
+
 #In Kali, sampling date is confusing for two sets of samples. The date is just called July. 
 # Put an approx date based on sampling schedule and the SSC value
 # In July, there are 4 sampling dates July 4, 12, 20 and 28. The bottles say that were
@@ -125,14 +127,14 @@ issue = ssc[which((ssc$Note) != ""),]
 
 
 
-ssc = ssc[-grep("confusing", ssc$Note,ignore.case = TRUE),]
-ssc = ssc[-grep("ants", ssc$Note,ignore.case = TRUE),]
-ssc = ssc[-grep("bottle", ssc$Note,ignore.case = TRUE),]
-ssc = ssc[-grep("estimate", ssc$Note,ignore.case = TRUE),]
-ssc = ssc[-grep("unknown", ssc$Note,ignore.case = TRUE),]
-ssc = ssc[-grep("confusion", ssc$Note,ignore.case = TRUE),]
-ssc = ssc[-grep("vessel", ssc$Note,ignore.case = TRUE),]
-ssc = ssc[-grep("forgot", ssc$Note,ignore.case = TRUE),]
+# ssc = ssc[-grep("confusing", ssc$Note,ignore.case = TRUE),]
+# ssc = ssc[-grep("ants", ssc$Note,ignore.case = TRUE),]
+# ssc = ssc[-grep("bottle", ssc$Note,ignore.case = TRUE),]
+# ssc = ssc[-grep("estimate", ssc$Note,ignore.case = TRUE),]
+# ssc = ssc[-grep("unknown", ssc$Note,ignore.case = TRUE),]
+# ssc = ssc[-grep("confusion", ssc$Note,ignore.case = TRUE),]
+# ssc = ssc[-grep("vessel", ssc$Note,ignore.case = TRUE),]
+# ssc = ssc[-grep("forgot", ssc$Note,ignore.case = TRUE),]
 
 issue = ssc[which((ssc$Note) != ""),] # these remaining ones are just comments. 
 
@@ -158,7 +160,9 @@ ssc$River = as.factor(ssc$River)
 #         axis.title=element_text(size=14,face="bold"))
 
 
-ssc_onlyCleandata = ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River))+
+#ssc_onlyCleandata 
+  
+  ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River,method = "auto"),span = 0.5) +
   xlab(" ")+ylab("log(SSC) ")+ ggtitle("Reflectance")+
   scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
@@ -178,6 +182,12 @@ ggplot(ssc[ssc$SSC..mg.l.<150 & ssc$SSC..mg.l.>0,],aes(x = Turbidity,y = (SSC..m
   theme_bw()+xlab("Turbidity") + ylab("SSC") +ggtitle("SSC vs turbidity")+
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=14,face="bold"))
+  
+ggplot(ssc,aes(x = Turbidity,y = (SSC..mg.l.)))+geom_point(aes(group = River,col = River))+
+    theme_bw()+xlab("Turbidity") + ylab("SSC") +ggtitle("SSC vs turbidity")+
+    theme(axis.text=element_text(size=12),
+          axis.title=element_text(size=14,face="bold"))
+  
 
 
 
