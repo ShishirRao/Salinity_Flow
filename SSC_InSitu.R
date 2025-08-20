@@ -70,9 +70,9 @@ ssc = ssc %>% select(-c("Turbidity.1","Turbidity.2","Turbidity.3","Turbidity.4",
                         "Volume.of.water..liters.", "Filter.weight.before.filtration..gm.",
                         "Filter.weight.after.filtration..gm.","filterChangeID"))
 
-#######next look at rows where either the date was confusing, or where there were issues with sampling or with filtration#####
 
-
+#######next look at rows where either the date was confusing -- remove them or correct them based on notes, 
+####### or where there were issues with sampling methods or with filtration#####
 
 #In Kali, sampling date is confusing for two sets of samples. The date is just called July. 
 # Put an approx date based on sampling schedule and the SSC value
@@ -92,13 +92,43 @@ ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 150] = "28-July
 ssc$Sampling.Date[ssc$Sampling.Date == "July" & ssc$Filter.ID == 187] = "28-July-23"
 
 
-ssc$Sampling.Date = dmy(ssc$Sampling.Date) 
+# Notes say that samples from 2023-10-16 and 2023-11-01 from Aghanashini could have been interchanged
+# because reflectance for 2023-11-01 is high. Moving higher SSC samples from 2023-10-16 to 2023-11-01 and
+# lower SSC samples from 2023-11-01 to 2023-10-16
 
+ssc$Sampling.Date = dmy(ssc$Sampling.Date) 
+# get month
+ssc$SamplingMonth = lubridate::month(ssc$Sampling.Date,label = TRUE,abbr = TRUE)
+
+ssc[ssc$SamplingMonth == "Nov" & ssc$River == "Agha",]
+ssc[ssc$Sampling.Date == ymd("2023-10-16") & ssc$River == "Agha",]
+ssc[ssc$Sampling.Date == ymd("2023-11-01") & ssc$River == "Agha",]
+
+#swapping 142 and 216 from 2023-10-16 with 153 and 210 from 2023-11-01 
+
+temp = ssc$SSC..mg.l.[ssc$Sampling.Date == ymd("2023-10-16") & ssc$River == "Agha" & ssc$Filter.ID == 142]
+ssc$SSC..mg.l.[ssc$Sampling.Date == ymd("2023-10-16") & ssc$River == "Agha" & ssc$Filter.ID == 142] = 
+  ssc$SSC..mg.l.[ssc$Sampling.Date == ymd("2023-11-01") & ssc$River == "Agha" & ssc$Filter.ID == 153] 
+ssc$SSC..mg.l.[ssc$Sampling.Date == ymd("2023-11-01") & ssc$River == "Agha" & ssc$Filter.ID == 153]  = temp
+
+temp = ssc$SSC..mg.l.[ssc$Sampling.Date == ymd("2023-10-16") & ssc$River == "Agha" & ssc$Filter.ID == 216]
+ssc$SSC..mg.l.[ssc$Sampling.Date == ymd("2023-10-16") & ssc$River == "Agha" & ssc$Filter.ID == 216] = 
+  ssc$SSC..mg.l.[ssc$Sampling.Date == ymd("2023-11-01") & ssc$River == "Agha" & ssc$Filter.ID == 210] 
+ssc$SSC..mg.l.[ssc$Sampling.Date == ymd("2023-11-01") & ssc$River == "Agha" & ssc$Filter.ID == 210]  = temp
+
+
+
+# 07-24 was not a scehduled sampling date. It must be either 07-20 or 07-28. Assigning it to 07-28 because
+# the SSC is high and reflectance is high as well
+ssc$Sampling.Date[ssc$Sampling.Date == ymd("2023-07-24") & ssc$River == "Agha"] = rep(ymd("2023-07-28"),4)
+
+
+#####now let us address rows where sample size is more than 4 because at no sampling site, more than 4 replicates were collected###
 #calculate a column which tells how many samples were collected. If there are replicates, then problematic rows can be discarded
 ssc = ssc %>% group_by(Sampling.Date,River) %>% mutate(Samplesize = n())
 
 
-#now let us address rows where sample size is more than 4 because at no sampling site, more than 4 replicates were collected
+
 high = ssc[ssc$Samplesize>4,]
 
 #on 6-10, Kali has 5 samples. One of the comments says the date was 02 but was struck down and re written as 10. 
@@ -138,8 +168,6 @@ issue = ssc[which((ssc$Note) != ""),]
 
 issue = ssc[which((ssc$Note) != ""),] # these remaining ones are just comments. 
 
-# get month
-ssc$SamplingMonth = lubridate::month(ssc$Sampling.Date,label = TRUE,abbr = TRUE)
 
 
 #create timeseries of sampling dates

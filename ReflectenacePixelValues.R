@@ -242,8 +242,8 @@ ggplotRegression <- function (fit) {
                        " P =",signif(summary(fit)$coef[2,4], 5)))
 }
 
-data = refl_long %>% filter(Band == "AvgRed") %>% filter(River == "Agha")
-fit1 = lm(logssc ~ Reflect, data = data %>% filter(River == "Agha"))
+data = refl_long %>% filter(Band == "AvgRed") %>% filter(River == "Kali")
+fit1 = lm(logssc ~ Reflect, data = data)
 summary(fit1)
 ggplotRegression(fit1)
 
