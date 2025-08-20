@@ -117,8 +117,9 @@ LandsatDates = data.frame("ImgDates" = seq(ymd("2023-01-09"),ymd("2023-12-27"), 
 #pix = read.csv("pixelValues_v5.csv",header=T)
 #pix = read.csv("pixelValues_v6.csv",header=T)
 #pix = read.csv("pixelValues_v7.csv",header=T)
-pix = read.csv("PolygonValues_v9.csv",header=T)
-
+#pix = read.csv("PolygonValues_v9.csv",header=T)
+pix = read.csv("PolygonValues_v10.csv",header=T)
+#pix = read.csv("PolygonValues_v11.csv",header=T)
 
 names(pix)
 head(pix)
@@ -141,10 +142,7 @@ unique(pix$ImgDates)
 pix %>% filter(Red > 0.3) 
 pix %>% filter(Red < 0.009)
 
-pix %>% filter(River == "Agha" & ImgDates == ymd("2023-05-09"))
-
-unique(highReds$ImgDates)
-unique(highReds2$ImgDates)
+#pix %>% filter(River == "Agha" & ImgDates == ymd("2023-07-28"))
 
 pix = pix %>% filter(Red <= 0.3 & Red >= 0.009) 
 
@@ -172,7 +170,7 @@ refl = left_join(refl, AvgBlue)
 refl = left_join(refl, AvgNIR)
 refl$AvgRedbyNIR = refl$AvgRed / refl$AvgNIR
 
-#write.csv(refl,"E:/Shishir/FieldData/Results/Refl_v3_polygonAgha.csv")
+#write.csv(refl,"E:/Shishir/FieldData/Results/Refl_v4_polygonGang.csv")
 
 refl_long = gather(refl,key = "Band",value = "Reflect",AvgRed, AvgGreen, AvgBlue,AvgNIR,AvgRedbyNIR)
 names(refl_long)
@@ -242,7 +240,7 @@ ggplotRegression <- function (fit) {
                        " P =",signif(summary(fit)$coef[2,4], 5)))
 }
 
-data = refl_long %>% filter(Band == "AvgRed") %>% filter(River == "Kali")
+data = refl_long %>% filter(Band == "AvgRed") %>% filter(River == "Agha")
 fit1 = lm(logssc ~ Reflect, data = data)
 summary(fit1)
 ggplotRegression(fit1)
