@@ -117,17 +117,21 @@ ssc$SSC..mg.l.[ssc$Sampling.Date == ymd("2023-10-16") & ssc$River == "Agha" & ss
 ssc$SSC..mg.l.[ssc$Sampling.Date == ymd("2023-11-01") & ssc$River == "Agha" & ssc$Filter.ID == 210]  = temp
 
 
-
 # 07-24 was not a scehduled sampling date. It must be either 07-20 or 07-28. Assigning it to 07-28 because
 # the SSC is high and reflectance is high as well
 ssc$Sampling.Date[ssc$Sampling.Date == ymd("2023-07-24") & ssc$River == "Agha"] = rep(ymd("2023-07-28"),4)
+
+# 07-20 has low SSC but WLR shows a maximum peak and reflectance is very high as well. 
+# 07-11 was not a scheduled sampling date but has high SSC even WLR doesn't show a peak. 
+# Likely the two samples got exchanged.
+ssc$Sampling.Date[ssc$Sampling.Date == ymd("2023-07-20") & ssc$River == "Gangavali"] = rep(ymd("2023-07-12"),4)
+ssc$Sampling.Date[ssc$Sampling.Date == ymd("2023-07-11") & ssc$River == "Gangavali"] = rep(ymd("2023-07-20"),4)
+
 
 
 #####now let us address rows where sample size is more than 4 because at no sampling site, more than 4 replicates were collected###
 #calculate a column which tells how many samples were collected. If there are replicates, then problematic rows can be discarded
 ssc = ssc %>% group_by(Sampling.Date,River) %>% mutate(Samplesize = n())
-
-
 
 high = ssc[ssc$Samplesize>4,]
 
@@ -139,6 +143,8 @@ ssc$Sampling.Date[ssc$River == "Kali" & ssc$Filter.ID == 148] = ymd("2023-06-02"
 #In October, sampling dates are 10-8, 10-16 and 10-24. 
 #The higher values must be 10-16, because samples dated 10-24 are already present
 
+ssc[ssc$River == "Gangavali" & ssc$Sampling.Date == ymd("2023-10-24"),]
+
 ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 273] = ymd("2023-10-16")
 ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 275] = ymd("2023-10-16")
 ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 322] = ymd("2023-10-16")
@@ -146,15 +152,14 @@ ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 322] = ymd("2023-1
 ssc = ssc %>% group_by(Sampling.Date,River) %>% mutate(Samplesize = n())
 high = ssc[ssc$Samplesize>4,]
 
+
+
+
 #no more high values where sample size > 4. 
 
 
-# remove all the confusing samples based on the notes
+# Look at all the confusing samples based on the notes
 issue = ssc[which((ssc$Note) != ""),]
-
-
-# In Aghanashini, there are two samples with confusing dates.
-
 
 
 # ssc = ssc[-grep("confusing", ssc$Note,ignore.case = TRUE),]

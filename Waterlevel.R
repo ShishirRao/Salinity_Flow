@@ -169,6 +169,8 @@ WLR_Gang$Date_time = mdy_hm(WLR_Gang$Date_time)
 
 WLR_Gang$River = "Gang"
 
+WLR_Gang$Month = month(WLR_Gang$Date_time)
+
 Gang_WLR = ggplot(WLR_Gang[WLR_Gang$SlNo>10,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
@@ -177,12 +179,14 @@ Gang_WLR = ggplot(WLR_Gang[WLR_Gang$SlNo>10,], aes(x=Date_time , y=kPa)) +
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=13,face="bold"))
 
-ggplot(WLR_Gang, aes(x=Date_time , y=kPa)) +
+ggplot(WLR_Gang[WLR_Gang$Month >= 9 & WLR_Gang$Month <= 12,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+ 
   scale_x_datetime(date_labels = "%b-%d",date_breaks = "8 day")+theme_bw()+
   theme(axis.text=element_text(size=6),
         axis.title=element_text(size=18,face="bold"))
+
+
 ### kali
 WLR1 = read.csv("Analysis/WaterLevel/Kali/Kali_WLR13ft_April30.csv",header=T)
 names(WLR1) = c("SlNo","Date_time","kPa","Temp_degC_WLR")

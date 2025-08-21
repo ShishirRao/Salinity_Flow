@@ -8,6 +8,7 @@ library(stringi)
 library(broom)
 library(broom.mixed)
 library(tidyr)
+library(purrr)
 
 setwd("E:/Shishir/FieldData/Analysis/Reflectance/")
 
@@ -118,8 +119,8 @@ LandsatDates = data.frame("ImgDates" = seq(ymd("2023-01-09"),ymd("2023-12-27"), 
 #pix = read.csv("pixelValues_v6.csv",header=T)
 #pix = read.csv("pixelValues_v7.csv",header=T)
 #pix = read.csv("PolygonValues_v9.csv",header=T)
-pix = read.csv("PolygonValues_v10.csv",header=T)
-#pix = read.csv("PolygonValues_v11.csv",header=T)
+#pix = read.csv("PolygonValues_v10.csv",header=T)
+pix = read.csv("PolygonValues_v11.csv",header=T)
 
 names(pix)
 head(pix)
@@ -142,7 +143,9 @@ unique(pix$ImgDates)
 pix %>% filter(Red > 0.3) 
 pix %>% filter(Red < 0.009)
 
-#pix %>% filter(River == "Agha" & ImgDates == ymd("2023-07-28"))
+#pix %>% filter(River == "Gang" & ImgDates == ymd("2023-10-24"))
+
+temp = pix %>% filter(River == "Gang" & ImgDates == ymd("2023-10-24")) %>% select(ImgDates,site,Red)
 
 pix = pix %>% filter(Red <= 0.3 & Red >= 0.009) 
 
@@ -198,11 +201,13 @@ by <- join_by(River,ImgDates == Sampling.Date)
 refl_long = left_join(refl_long,ssc_mean,by)
 refl_long = refl_long[complete.cases(refl_long),]
 names(refl_long)
-refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Band,Reflect,ssc_mean,logssc)
+refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Band,Reflect,ssc_mean,logssc) %>%
+            filter(Band == "AvgRed")
 
 
 # plot log(ssc)~Reflect for each band combination
-SSCvsRedv2 = ggplot(refl_long %>% filter(Band == "AvgRed"),aes(y = logssc, x = Reflect))+geom_point()+
+# SSCvsRedv2 =
+  ggplot(refl_long, aes(y = logssc, x = Reflect))+geom_point()+
   stat_summary(fun.data= mean_cl_normal) + 
   geom_smooth(method='lm') +facet_wrap(~River, scales = "free")+
   ggtitle("Log(ssc) vs reflectance")+theme_bw()+ xlab("Reflectance") +ylab("Log SSC")+
@@ -213,8 +218,10 @@ SSCvsRedv2 = ggplot(refl_long %>% filter(Band == "AvgRed"),aes(y = logssc, x = R
 #       scale = 3, width = 5, height = 3,
 #       dpi = 300, limitsize = TRUE)
 
+
 # plot log(ssc)~Reflect for each band combination
-SSCvsRed_allRiversv2 = ggplot(refl_long %>% filter(Band == "AvgRed"),aes(y = logssc, x = Reflect))+
+# SSCvsRed_allRiversv2 = 
+  ggplot(refl_long ,aes(y = logssc, x = Reflect))+
   geom_point(aes(fill = River,color = River))+
   #stat_summary(fun.data= mean_cl_normal) + 
   geom_smooth(method='lm') +
@@ -226,7 +233,47 @@ SSCvsRed_allRiversv2 = ggplot(refl_long %>% filter(Band == "AvgRed"),aes(y = log
 #        scale = 3, width = 5, height = 3,
 #        dpi = 300, limitsize = TRUE)
 
+  
+#multiple lms  
+  summary = refl_long  %>% group_by(River) %>%
+    do(mod = lm(logssc ~ Reflect, data = .)) %>% ungroup() %>% 
+    mutate(tidy = map(mod, broom::tidy),
+           glance = map(mod, broom::glance),
+           rsq = glance %>% map_dbl('r.squared'),
+           adj.rsq = glance %>% map_dbl('adj.r.squared'),
+           p_val = glance %>% map_dbl('p.value'),
+           intercept = tidy %>% map_dbl(function(x) x$estimate[1]),
+           slope = tidy %>% map_dbl(function(x) x$estimate[2]))  %>%
+    select(River,rsq,adj.rsq,p_val,intercept,slope)
 
+refl_long = left_join(refl_long,summary) 
+
+River_labels = c(as.character(round(unique(refl_long$rsq),3)))
+
+hum_names <- as_labeller(
+  c("Agha" = paste("Agha\n","AdjR2 =",River_labels[1]), 
+    "Gang" = paste("Gang\n","AdjR2 =", River_labels[2]),
+    "Kali" = paste("Kali\n","AdjR2 = ", River_labels[3]), 
+    "Shar" = paste("Shar\n","AdjR2 = ", River_labels[4])))
+
+unique(refl_long$River)
+  
+  
+ggplot(refl_long,aes(y = logssc, x = Reflect))+
+    geom_point(aes(fill = River,color = River))+
+    #stat_summary(fun.data= mean_cl_normal) + 
+    geom_smooth(method='lm') + facet_wrap(.~River, scales = "free",labeller = hum_names)+
+    ggtitle("Log(ssc) vs reflectance")+theme_bw()+ xlab("Reflectance") +ylab("Log SSC")+
+    theme(axis.text=element_text(size=6),
+          axis.title=element_text(size=6,face="bold"))
+
+?facet_wrap()
+    
+    
+    paste("Adj R2 = ",signif(rsq, 5),
+          "Intercept =",signif(intercept,5 ),
+          " Slope =",signif(slope, 5),
+          " P =",signif(p_value, 5))
 
 
 ggplotRegression <- function (fit) {
@@ -240,33 +287,15 @@ ggplotRegression <- function (fit) {
                        " P =",signif(summary(fit)$coef[2,4], 5)))
 }
 
-data = refl_long %>% filter(Band == "AvgRed") %>% filter(River == "Agha")
+data = refl_long %>% filter(Band == "AvgRed") %>% filter(River == "Gang")
 fit1 = lm(logssc ~ Reflect, data = data)
-summary(fit1)
+summary(fit1)$ad
 ggplotRegression(fit1)
 
-head(refl_long)
-
-plot(ssc_mean ~ Reflect, data = refl_long %>% filter(Band == "AvgRed"))
-plot(logssc ~ Reflect, data = refl_long %>% filter(Band == "AvgRed"))
 
 
 
-plot(log(refl$ssc_mean)~refl$Reflect)
-Agh_lm = lm(log(refl$ssc_mean)~refl$Reflect)
-
-abline(Agh_lm)
-
-ggplot(refl_long)
 
 
 
-data = refl_long %>% filter(River == "Agha" & Band == "AvgRed") 
-model = lm(data$logssc~data$Reflect)
-summary(model)
-
-data = refl_long %>% filter(River == "Shar" & Band == "AvgRed") 
-Agha_lm = lm(data$logssc~data$Reflect)
-summary = summary(Agha_lm)
-summary$adj.r.squared
-
+?map
