@@ -9,6 +9,7 @@ library(broom)
 library(broom.mixed)
 library(tidyr)
 library(purrr)
+library(lme4)
 
 setwd("E:/Shishir/FieldData/Analysis/Reflectance/")
 
@@ -120,8 +121,11 @@ LandsatDates = data.frame("ImgDates" = seq(ymd("2023-01-09"),ymd("2023-12-27"), 
 #pix = read.csv("pixelValues_v7.csv",header=T)
 #pix = read.csv("PolygonValues_v9.csv",header=T)
 #pix = read.csv("PolygonValues_v10.csv",header=T)
-pix = read.csv("PolygonValues_v11.csv",header=T)
+#pix = read.csv("PolygonValues_v11.csv",header=T)
+#pix = read.csv("PolygonValues_v12.csv",header=T)
+pix = read.csv("PolygonValues_v13.csv",header=T)
 
+unique(pix$name)
 names(pix)
 head(pix)
 nrow(pix)
@@ -145,7 +149,7 @@ pix %>% filter(Red < 0.009)
 
 #pix %>% filter(River == "Gang" & ImgDates == ymd("2023-10-24"))
 
-temp = pix %>% filter(River == "Gang" & ImgDates == ymd("2023-10-24")) %>% select(ImgDates,site,Red)
+#temp = pix %>% filter(River == "Gang" & ImgDates == ymd("2023-10-24")) %>% select(ImgDates,site,Red)
 
 pix = pix %>% filter(Red <= 0.3 & Red >= 0.009) 
 
@@ -173,7 +177,7 @@ refl = left_join(refl, AvgBlue)
 refl = left_join(refl, AvgNIR)
 refl$AvgRedbyNIR = refl$AvgRed / refl$AvgNIR
 
-#write.csv(refl,"E:/Shishir/FieldData/Results/Refl_v4_polygonGang.csv")
+#write.csv(refl,"E:/Shishir/FieldData/Results/Refl_v6_polygonShar.csv")
 
 refl_long = gather(refl,key = "Band",value = "Reflect",AvgRed, AvgGreen, AvgBlue,AvgNIR,AvgRedbyNIR)
 names(refl_long)
@@ -186,7 +190,7 @@ names(refl_long)
 #         axis.title=element_text(size=14,face="bold"))
 
 ggplot(refl_long %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River),span = 0.4) + ggtitle("Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  geom_smooth(aes(group = River,col = River),span = 0.3) + ggtitle("Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance")+
   scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))
@@ -207,12 +211,12 @@ refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Ban
 
 # plot log(ssc)~Reflect for each band combination
 # SSCvsRedv2 =
-  ggplot(refl_long, aes(y = logssc, x = Reflect))+geom_point()+
-  stat_summary(fun.data= mean_cl_normal) + 
-  geom_smooth(method='lm') +facet_wrap(~River, scales = "free")+
-  ggtitle("Log(ssc) vs reflectance")+theme_bw()+ xlab("Reflectance") +ylab("Log SSC")+
-  theme(axis.text=element_text(size=14),
-        axis.title=element_text(size=14,face="bold"))
+  # ggplot(refl_long, aes(y = logssc, x = Reflect))+geom_point()+
+  # stat_summary(fun.data= mean_cl_normal) + 
+  # geom_smooth(method='lm') +facet_wrap(~River, scales = "free")+
+  # ggtitle("Log(ssc) vs reflectance")+theme_bw()+ xlab("Reflectance") +ylab("Log SSC")+
+  # theme(axis.text=element_text(size=14),
+  #       axis.title=element_text(size=14,face="bold"))
 
 # ggsave("SSCvsRedv2.jpg", SSCvsRedv2, device = "jpg",path = "E:/Shishir/FieldData/Results/",
 #       scale = 3, width = 5, height = 3,
@@ -220,21 +224,21 @@ refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Ban
 
 
 # plot log(ssc)~Reflect for each band combination
-# SSCvsRed_allRiversv2 = 
-  ggplot(refl_long ,aes(y = logssc, x = Reflect))+
-  geom_point(aes(fill = River,color = River))+
-  #stat_summary(fun.data= mean_cl_normal) + 
-  geom_smooth(method='lm') +
-  ggtitle("Log(ssc) vs reflectance")+theme_bw()+ xlab("Reflectance") +ylab("Log SSC")+
-  theme(axis.text=element_text(size=14),
-        axis.title=element_text(size=14,face="bold"))
+#SSCvsRed_allRiversv2 =
+ggplot(refl_long ,aes(y = logssc, x = Reflect))+
+geom_point(aes(fill = River,color = River))+
+#stat_summary(fun.data= mean_cl_normal) +
+geom_smooth(method='lm') +
+ggtitle("Log(ssc) vs reflectance")+theme_bw()+ xlab("Reflectance") +ylab("Log SSC")+
+theme(axis.text=element_text(size=14),
+      axis.title=element_text(size=14,face="bold"))
 
 # ggsave("SSCvsRed_allRiversv2.jpg", SSCvsRed_allRiversv2, device = "jpg",path = "E:/Shishir/FieldData/Results/",
 #        scale = 3, width = 5, height = 3,
 #        dpi = 300, limitsize = TRUE)
 
   
-#multiple lms  
+#multiple linear regressions
   summary = refl_long  %>% group_by(River) %>%
     do(mod = lm(logssc ~ Reflect, data = .)) %>% ungroup() %>% 
     mutate(tidy = map(mod, broom::tidy),
@@ -248,13 +252,17 @@ refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Ban
 
 refl_long = left_join(refl_long,summary) 
 
-River_labels = c(as.character(round(unique(refl_long$rsq),3)))
+River_rsq = c(as.character(round(unique(refl_long$rsq),3)))
+River_Adjrsq = c(as.character(round(unique(refl_long$adj.rsq),3)))
+River_pval = c(as.character(round(unique(refl_long$p_val),3)))
+River_slope = c(as.character(round(unique(refl_long$adj.rsq),3)))
+River_intercept = c(as.character(round(unique(refl_long$intercept),3)))
 
 hum_names <- as_labeller(
-  c("Agha" = paste("Agha\n","AdjR2 =",River_labels[1]), 
-    "Gang" = paste("Gang\n","AdjR2 =", River_labels[2]),
-    "Kali" = paste("Kali\n","AdjR2 = ", River_labels[3]), 
-    "Shar" = paste("Shar\n","AdjR2 = ", River_labels[4])))
+  c("Agha" = paste("Agha: ","AdjR2 =",River_Adjrsq[1],",Intercept = ",River_intercept[1],"Slope = ",River_slope[1],"p.val = ",River_pval[1]), 
+    "Gang" = paste("Gang: ","AdjR2 =",River_Adjrsq[2],",Intercept = ",River_intercept[2],"Slope = ",River_slope[2],"p.val = ",River_pval[2]), 
+    "Kali" = paste("Kali: ","AdjR2 =",River_Adjrsq[3],",Intercept = ",River_intercept[3],"Slope = ",River_slope[3],"p.val = ",River_pval[3]),  
+    "Shar" = paste("Shar: ","AdjR2 =",River_Adjrsq[4],",Intercept = ",River_intercept[4],"Slope = ",River_slope[4],"p.val = ",River_pval[4]))) 
 
 unique(refl_long$River)
   
@@ -263,39 +271,55 @@ ggplot(refl_long,aes(y = logssc, x = Reflect))+
     geom_point(aes(fill = River,color = River))+
     #stat_summary(fun.data= mean_cl_normal) + 
     geom_smooth(method='lm') + facet_wrap(.~River, scales = "free",labeller = hum_names)+
+    theme(strip.text = element_text(size = 1))+
     ggtitle("Log(ssc) vs reflectance")+theme_bw()+ xlab("Reflectance") +ylab("Log SSC")+
     theme(axis.text=element_text(size=6),
           axis.title=element_text(size=6,face="bold"))
 
-?facet_wrap()
-    
-    
-    paste("Adj R2 = ",signif(rsq, 5),
-          "Intercept =",signif(intercept,5 ),
-          " Slope =",signif(slope, 5),
-          " P =",signif(p_value, 5))
+# ggsave("SSCvsRed_withPvals.jpg", device = "jpg",path = "E:/Shishir/FieldData/Results/",
+#        scale = 3, width = 5, height = 3,
+#         dpi = 300, limitsize = TRUE)
 
 
-ggplotRegression <- function (fit) {
-  require(ggplot2)
-  ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) + 
-    geom_point() +
-    stat_smooth(method = "lm", col = "red") +
-    labs(title = paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5),
-                       "Intercept =",signif(fit$coef[[1]],5 ),
-                       " Slope =",signif(fit$coef[[2]], 5),
-                       " P =",signif(summary(fit)$coef[2,4], 5)))
-}
+refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Band,Reflect,ssc_mean,logssc) %>%
+  filter(Band == "AvgRed")
+data = refl_long %>% filter(Band == "AvgRed")
 
-data = refl_long %>% filter(Band == "AvgRed") %>% filter(River == "Gang")
-fit1 = lm(logssc ~ Reflect, data = data)
-summary(fit1)$ad
-ggplotRegression(fit1)
+# linear regression with all the points pooled together
+fit = lm(logssc ~ Reflect, data = data)
+summary(fit)
+
+data$adj.rsq = signif(summary(fit)$adj.r.squared, 5)
+data$intercept = signif(fit$coef[[1]],5 )
+data$Slope = signif(fit$coef[[2]], 5)
+data$P = signif(summary(fit)$coef[2,4], 5)
+
+ggplot(data ,aes(y = logssc, x = Reflect))+
+  geom_point(aes(fill = River,color = River))+
+  #stat_summary(fun.data= mean_cl_normal) +
+  geom_smooth(method='lm') +
+  ggtitle("Log(ssc) vs reflectance")+theme_bw()+ xlab("Reflectance") +ylab("Log SSC")+
+  labs(title = paste("Adj R2 = ",data$adj.rsq,
+                     "Intercept =",data$intercept,
+                     " Slope =",data$Slope,
+                     " P =",data$P))+
+  theme(axis.text=element_text(size=14),
+        axis.title=element_text(size=14,face="bold"))
 
 
+##### trying random intercept and random slope model ######
+names(refl_long)
+
+fit_ran_incpt = lmer(logssc ~ Reflect + (1 | River), data = refl_long)
+summary(fit_ran_incpt)
+confint(fit_ran_incpt)
+
+fit_ran_incpt_slp = lmer(logssc ~ Reflect + (1+Reflect | River), data = refl_long)
+summary(fit_ran_incpt_slp)
+confint(fit_ran_incpt_slp)
 
 
+ggplot(refl_long,aes(x=Reflect,y=logssc,col=River)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_grid(~River)
 
 
-
-?map
+isSingular(fit_ran_incpt_slp,1e-4)
