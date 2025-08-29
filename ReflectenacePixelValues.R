@@ -123,7 +123,9 @@ LandsatDates = data.frame("ImgDates" = seq(ymd("2023-01-09"),ymd("2023-12-27"), 
 #pix = read.csv("PolygonValues_v10.csv",header=T)
 #pix = read.csv("PolygonValues_v11.csv",header=T)
 #pix = read.csv("PolygonValues_v12.csv",header=T)
-pix = read.csv("PolygonValues_v13.csv",header=T)
+#pix = read.csv("PolygonValues_v13.csv",header=T)
+pix = read.csv("PolygonValues_v14_1989_2023.csv",header=T)
+
 
 unique(pix$name)
 names(pix)
@@ -150,8 +152,15 @@ pix %>% filter(Red < 0.009)
 #pix %>% filter(River == "Gang" & ImgDates == ymd("2023-10-24"))
 
 #temp = pix %>% filter(River == "Gang" & ImgDates == ymd("2023-10-24")) %>% select(ImgDates,site,Red)
+temp = pix %>% filter(Red >= 0.3 | Red <= 0.009) 
+unique(temp$ImgDates)
 
-pix = pix %>% filter(Red <= 0.3 & Red >= 0.009) 
+#pix = pix %>% filter(Red <= 0.3 & Red >= 0.009) 
+
+temp = pix %>% filter(Red >= 0.2)
+unique(temp$ImgDates)
+
+unique(temp$site[temp$ImgDates == ymd("1993-08-26")])
 
 pix_red = pix %>% group_by(site,ImgDates) %>% mutate(AvgRed = median(Red)) %>%
   select(site,ImgDates,River,AvgRed)  %>% distinct() %>% spread(site,AvgRed)
@@ -165,22 +174,33 @@ pix_blue = pix %>% group_by(site,ImgDates) %>% mutate(AvgBlue = median(Blue)) %>
 pix_NIR = pix %>% group_by(site,ImgDates) %>% mutate(AvgNIR = median(NIR)) %>%
   select(site,ImgDates,River,AvgNIR)  %>% distinct() %>% spread(site,AvgNIR)
 
+pix_Bright = pix %>% group_by(site,ImgDates) %>% mutate(AvgNIR = mean(NIR)) %>%
+  select(site,ImgDates,River,AvgNIR)  %>% distinct() %>% spread(site,AvgNIR)
+
+
 # combine the values for each site based on cloud free data availability
 AvgRed = SiteCombine(pix_red) %>% rename(AvgRed = Reflect)
 AvgGreen = SiteCombine(pix_green) %>% rename(AvgGreen = Reflect)
 AvgBlue = SiteCombine(pix_blue) %>% rename(AvgBlue = Reflect)
 AvgNIR = SiteCombine(pix_NIR) %>% rename(AvgNIR = Reflect)
-
+AvgBright = SiteCombine(pix_Bright) %>% rename(AvgBright = Reflect)
 
 refl = left_join(AvgRed,AvgGreen)
 refl = left_join(refl, AvgBlue)
 refl = left_join(refl, AvgNIR)
+refl = left_join(refl, AvgBright)
 refl$AvgRedbyNIR = refl$AvgRed / refl$AvgNIR
+
 
 #write.csv(refl,"E:/Shishir/FieldData/Results/Refl_v6_polygonShar.csv")
 
-refl_long = gather(refl,key = "Band",value = "Reflect",AvgRed, AvgGreen, AvgBlue,AvgNIR,AvgRedbyNIR)
+refl_long = gather(refl,key = "Band",value = "Reflect",AvgRed, AvgGreen, AvgBlue,AvgNIR,AvgRedbyNIR,AvgBright)
 names(refl_long)
+unique(refl_long$ImgDates)
+
+max(refl_long$Reflect[refl_long$Band == "AvgRed"])
+
+BrightImages = refl_long %>% filter(Band == "AvgBright" & Reflect >= 0.5)
 
 # #plot band values against time. 
 # ggplot(refl_long,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
@@ -190,8 +210,8 @@ names(refl_long)
 #         axis.title=element_text(size=14,face="bold"))
 
 ggplot(refl_long %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River),span = 0.3) + ggtitle("Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance")+
-  scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
+  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))
 
@@ -323,3 +343,32 @@ ggplot(refl_long,aes(x=Reflect,y=logssc,col=River)) + geom_jitter() + geom_boxpl
 
 
 isSingular(fit_ran_incpt_slp,1e-4)
+
+
+##### extending the ssc~reflectance relationship to 1990 - 2023 ####
+
+
+pix_back = read.csv("PolygonValues_v14_1989_2023.csv",header=T)
+
+pix_back = pix_back %>% select("name","B2","B3","B4","B5","pixel_qa","date")
+names(pix_back) = c("site","Blue","Green","Red","NIR","pixel_qa","ImgDates")
+
+pix_back$ImgDates = ymd(stri_sub(pix_back$ImgDates,from = 1,to = 10))
+pix_back$River = stri_sub(pix_back$site,from = 1,to = 4)
+
+unique(pix_back$ImgDates)
+
+temp1 = pix_back %>% filter(Red > 0.3) 
+temp2 = pix_back %>% filter(Red < 0.009)
+
+pix_back %>% filter(ImgDates == ymd("1990-08-02")) %>% filter(River == "Agha")
+
+unique(pix_back$site)
+
+pix_back = pix_back %>% filter(Red <= 0.3 & Red >= 0.009) 
+
+pix_back_red = pix_back %>% group_by(site,ImgDates) %>% mutate(AvgRed = median(Red)) %>%
+  select(site,ImgDates,River,AvgRed)  %>% distinct() %>% spread(site,AvgRed)
+
+# combine the values for each site based on cloud free data availability
+AvgRed = SiteCombine(pix_back_red) %>% rename(AvgRed = Reflect)
