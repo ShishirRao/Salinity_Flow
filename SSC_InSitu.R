@@ -196,8 +196,8 @@ ssc$River = as.factor(ssc$River)
 #ssc_onlyCleandata 
   
   ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River,method = "auto"),span = 0.5) +
-  xlab(" ")+ylab("log(SSC) ")+ ggtitle("Reflectance")+
+  geom_smooth(aes(group = River,col = River,method = "auto"),span = 0.4) +
+  xlab(" ")+ylab("log(SSC) ")+ ggtitle("In-situ SSSC")+
   scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=12,face="bold"))+
