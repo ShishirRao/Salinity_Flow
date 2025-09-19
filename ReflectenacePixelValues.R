@@ -10,6 +10,7 @@ library(broom.mixed)
 library(tidyr)
 library(purrr)
 library(lme4)
+library(lattice)
 
 setwd("E:/Shishir/FieldData/Analysis/Reflectance/")
 
@@ -292,8 +293,11 @@ refl_long = left_join(refl_long,summary)
 River_rsq = c(as.character(round(unique(refl_long$rsq),3)))
 River_Adjrsq = c(as.character(round(unique(refl_long$adj.rsq),3)))
 River_pval = c(as.character(round(unique(refl_long$p_val),3)))
-River_slope = c(as.character(round(unique(refl_long$adj.rsq),3)))
+River_slope = c(as.character(round(unique(refl_long$slope),3)))
 River_intercept = c(as.character(round(unique(refl_long$intercept),3)))
+River = c("Agha","Gang","Kali","Shar")
+
+Reg_res = data.frame(slope = River_slope,intercept = River_intercept,River = River)
 
 hum_names <- as_labeller(
   c("Agha" = paste("Agha: ","AdjR2 =",River_Adjrsq[1],",Intercept = ",River_intercept[1],"Slope = ",River_slope[1],"p.val = ",River_pval[1]), 
@@ -348,20 +352,66 @@ ggplot(data ,aes(y = logssc, x = Reflect))+
 ##### trying random intercept and random slope model ######
 names(refl_long)
 
-fit_ran_incpt = lmer(logssc ~ Reflect + (1 | River), data = refl_long)
-summary(fit_ran_incpt)
-confint(fit_ran_incpt)
+# Random intercept
+fit_ran_incpt_all = lmer(logssc ~ Reflect + (1 | River), data = refl_long)
+summary(fit_ran_incpt_all)
+confint(fit_ran_incpt_all)
 
+# Random slope
 fit_ran_incpt_slp = lmer(logssc ~ Reflect + (1+Reflect | River), data = refl_long)
 summary(fit_ran_incpt_slp)
-confint(fit_ran_incpt_slp)
-
+#confint(fit_ran_incpt_slp)
 
 ggplot(refl_long,aes(x=Reflect,y=logssc,col=River)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_grid(~River)
 
-
+# Random slope model didn't work because of singularity error
 isSingular(fit_ran_incpt_slp,1e-4)
 
+# Random intercept for all except Sharavathi
+refl_long_without_Shar = refl_long %>% filter(River!= "Shar")
+unique(refl_long_without_Shar$River)
+class(refl_long_without_Shar$River)
+
+fit_ran_incpt_without_Shar = lmer(logssc ~ Reflect + (1 | River), data = refl_long_without_Shar)
+summary(fit_ran_incpt_without_Shar)
+confint(fit_ran_incpt_without_Shar)
+
+random_intercepts <- ranef(fit_ran_incpt_without_Shar)$River[, "(Intercept)"]
+dotplot(ranef(fit_ran_incpt_without_Shar, condVar = TRUE))
+
+
+random_effects_df <- data.frame(
+  group = rownames(ranef(fit_ran_incpt_without_Shar)$River),
+  intercept = random_intercepts
+)
+
+ggplot(random_effects_df, aes(x = group, y = intercept)) +
+  geom_point() +
+  labs(title = "Random Intercepts", x = "Grouping Variable", y = "Intercept Deviation") +
+  theme_minimal()
+
+refl_long_without_Shar$predicted_values <- predict(fit_ran_incpt_without_Shar, newdata = refl_long_without_Shar)
+
+ggplot(refl_long_without_Shar, aes(x = Reflect, y = logssc, color = River)) +
+  geom_point(alpha = 0.6) +
+  geom_line(aes(y = predicted_values)) +
+  labs(title = "Random Intercept Model ",
+       x = "Red Reflectance", y = "log (SSC)") +
+  theme_bw() +  theme(legend.position="bottom")
+
+
+# Using coef() with summary()
+fixed_effects <- coef(summary(fit_ran_incpt_without_Shar))[, "Estimate"]
+
+# Extracting the intercept and slope by name or position
+mean_intercept <- fixed_effects["(Intercept)"]
+mean_slope <- fixed_effects["Reflect"]
+
+Reg_res$slope = as.numeric(Reg_res$slope)
+Reg_res$intercept = as.numeric(Reg_res$intercept)
+
+Reg_res$slope[Reg_res$River == "Shar"] = mean_slope
+Reg_res$intercept[Reg_res$River == "Shar"] = mean_intercept
 
 ##### extending the ssc~reflectance relationship to 1990 - 2023 ####
 pix_back = read.csv("PolygonValues_v15_1989_2023.csv",header=T)
@@ -433,7 +483,7 @@ names(refl_long_back)
 unique(refl_long$ImgDates)
 
 ggplot(refl_long_back %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  geom_smooth(aes(group = River,col = River),span = .3) + ggtitle("Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance")+
   scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))
@@ -450,9 +500,21 @@ ggplot(refl_long_back %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDate
         axis.title=element_text(size=14,face="bold"))
 
 
+# now convert reflectance to ssc using the respective
+# linear regression intercept and slope for Agha, Gang and Kali
+# but random intercept mean and slope for Shar
 
+refl_long_back = left_join(refl_long_back,Reg_res)
+refl_long_back$SSC = (refl_long_back$Reflect * refl_long_back$slope) + refl_long_back$intercept
+refl_long_back$logSSC = log(refl_long_back$SSC)
 
+Reg_res
 
+ggplot(refl_long_back ,aes(y = logSSC, x = ImgDates))+geom_point(aes(group = River,col = River))+
+  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Reflectance")+ xlab("Imagery date") + ylab("log SSC")+
+  scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
+  theme(axis.text=element_text(size=13),
+        axis.title=element_text(size=14,face="bold"))
 
 ##### Checking for overlapping images between Landsat 5Theoph##### Checking for overlapping images between Landsat 5, 7, 8 and 9 #####
 #Create a date series for 2023 spaced 8 days apart
@@ -462,9 +524,27 @@ overlap = read.csv("PolygonProperties_v15_1989_2023.csv",header=T)
 overlap$Date_interval_start = ymd(stri_sub(overlap$Date_interval_start,from = 1,to = 10))
 
 overlap = left_join(LandsatDates,overlap)
+overlap = overlap[complete.cases(overlap),]
 overlap$year = year(overlap$Date_interval_start)
+overlap$month = month(overlap$Date_interval_start)
+overlap$season = ifelse(overlap$month >= 6 & overlap$month <= 11,"wet","dry")
 
 ImageAvailability = overlap %>% group_by(year) %>% summarize(sum(Number_of_images,na.rm = TRUE))
+names(ImageAvailability) = c("Year","No_of_Images")
+
+SeasonalImages = overlap %>% group_by(year,season) %>% summarize(sum(Number_of_images,na.rm = TRUE))
+names(SeasonalImages) = c("Year","Season","No_of_Images_season")
+
+#SeasonalImages = spread(SeasonalImages, key = Season, value = No_of_Images_season, fill = NA, convert = FALSE, drop = TRUE)
+#SeasonalImages$Total = SeasonalImages$dry + SeasonalImages$wet
+
+ggplot(ImageAvailability, aes(x=Year,y = No_of_Images )) + geom_bar(stat = "identity") +
+  xlab("Year") + ylab("Number of Landsat Images") + theme_bw()
+
+ggplot(data = SeasonalImages, aes(x = Year, y = No_of_Images_season, fill = Season)) +
+  geom_bar(stat = "identity", position = "stack") + xlab("Year") + ylab("No of Landsat Images")+
+  theme_bw() + theme(legend.position="bottom") +   theme(axis.text=element_text(size=12),
+                                                  axis.title=element_text(size=12,face="bold"))
 
 
 
