@@ -415,6 +415,7 @@ Reg_res$intercept[Reg_res$River == "Shar"] = mean_intercept
 
 ##### extending the ssc~reflectance relationship to 1990 - 2023 ####
 pix_back = read.csv("PolygonValues_v15_1989_2023.csv",header=T)
+#pix_back = read.csv("PolygonValues_v15_1989_2023_waterClass4.csv",header=T)
 
 pix_back = pix_back %>% select("name","B2","B3","B4","B5","pixel_qa","date")
 names(pix_back) = c("site","Blue","Green","Red","NIR","pixel_qa","ImgDates")
@@ -427,7 +428,7 @@ pix_back = pix_back %>% filter(Red <= 0.15 & Red >= 0.009)
 #### get some stats on water and clouds to remove cloud pixels ###
 areas = read.csv("polygon_areas.csv",header=T)
 head(areas)
-areas = areas %>% select(area,name) %>% rename(area = area,site = name)
+areas = areas %>% select(area,name,Type) %>% rename(area = area,site = name)
 
 cloudStat = read.csv("CloudStat_1989_2023.csv",header=T)
 cloudStat$date = ymd(stri_sub(cloudStat$date,from = 1,to = 10))
@@ -456,24 +457,49 @@ unique(temp$ImgDates)
 #write.csv(temp %>% select(site,ImgDates,River) %>% distinct(),"pix_back_red_above_0.12.csv")
 #yyyy-mm-dd
 
+temp = pix_back %>% filter(Red >= 0.1) %>% filter(Red <= 0.12)
+#unique(temp$ImgDates)
+#names(temp)
+#temp = left_join(temp, Corrections) 
+#write.csv(temp %>% select(site,ImgDates,River,Remove,Row.Site.Image, Comment) %>% distinct(),"pix_back_red_above_0.1_lessthan0.12.csv")
+
+
 ## read the csv where I manually verified the images with reflectance > 0.12 and < 0.15 for cloud cover
 
-Corrections = read.csv("pix_back_red_above_0.12.csv",header=TRUE)
-names(Corrections)
-Corrections = Corrections %>% select(site,ImgDates,River,Remove,Row.Site.Image,Comment)
+Corrections1 = read.csv("pix_back_red_above_0.12.csv",header=TRUE)
+Corrections2 = read.csv("pix_back_red_above_0.1_lessthan0.12.csv",header=TRUE)
+Corrections = rbind(Corrections1,Corrections2)
+Corrections = Corrections %>% select(site,ImgDates,River,Remove,Row.Site.Image) %>% distinct()
 Corrections$ImgDates = mdy(Corrections$ImgDates)
+
+Corrections[duplicated(Corrections),]
+
 
 pix_back = left_join(pix_back, Corrections)
 class(pix_back)
 unique(pix_back$Remove)
 
-pix_back$Remove = replace_na(pix_back$Remove,"No")
+pix_back$Remove = replace_na(pix_back$Remove,"Keep")
 pix_back = pix_back %>% filter(Remove != "Yes")
+pix_back = pix_back %>% filter(Type == "Sampling")
 
 
 
 pix_back_red = pix_back %>% group_by(site,ImgDates) %>% mutate(AvgRed = median(Red)) %>%
   select(site,ImgDates,River,AvgRed)  %>% distinct() %>% spread(site,AvgRed)
+names(pix_back_red)
+
+
+allSites = gather(pix_back_red %>% select(-Gang_water_wet2)  ,key = "Site",value = "Reflect",-c(ImgDates,River))
+ggplot(allSites ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = Site,col = Site))+
+  geom_smooth(aes(group = Site,col = Site),span = .5) + ggtitle("Red Reflectance from 1988 - 2023")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  scale_x_date(date_labels = "%y",date_breaks = "1000 day")+theme_bw()+ facet_grid(.~River) +
+  theme(axis.text=element_text(size=13),
+        axis.title=element_text(size=14,face="bold"))+
+  theme(legend.position="bottom")
+
+# The downstream most site has higher reflectance than other sites. 
+pix_back_red$Gang_water_wet2 = NA
 
 # combine the values for each site based on cloud free data availability
 AvgRed = SiteCombine(pix_back_red) %>% rename(AvgRed = Reflect)
@@ -483,7 +509,7 @@ names(refl_long_back)
 unique(refl_long$ImgDates)
 
 ggplot(refl_long_back %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River),span = .3) + ggtitle("Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Red Reflectance from 1988 - 2023")+ xlab("Imagery date") + ylab("Red Reflectance")+
   scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))
@@ -492,12 +518,15 @@ ggplot(refl_long_back %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDate
 refl_long_back$year = year(refl_long_back$ImgDates)
 refl_long_back$month = month(refl_long_back$ImgDates)
 
-ggplot(refl_long_back %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+
-  geom_boxplot(aes(group = year)) + facet_wrap(.~River,ncol=1,nrow=4)+
-  ggtitle("Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance")+
+## Seperate the seasons
+refl_long_back$season = ifelse(refl_long_back$month >= 6 & refl_long_back$month <= 11,"wet","dry")
+
+ggplot(refl_long_back %>% filter(season == "dry") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
+  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Red Reflectance from 1988 - 2023")+ xlab("Imagery date") + ylab("Red Reflectance")+
   scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))
+
 
 
 # now convert reflectance to ssc using the respective
@@ -511,16 +540,29 @@ refl_long_back$logSSC = log(refl_long_back$SSC)
 Reg_res
 
 ggplot(refl_long_back ,aes(y = logSSC, x = ImgDates))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Reflectance")+ xlab("Imagery date") + ylab("log SSC")+
+  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Log (SSC) from 1988 - 2023 ")+ xlab("Imagery date") + ylab("log SSC")+
   scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))
+
+
+
+
+
+
+ggplot(refl_long_back %>% filter(season == "wet") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
+  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Wet Season (June - Nov) Red Reflectance from 1988 - 2023")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
+  theme(axis.text=element_text(size=13),
+        axis.title=element_text(size=14,face="bold"))
+
 
 ##### Checking for overlapping images between Landsat 5Theoph##### Checking for overlapping images between Landsat 5, 7, 8 and 9 #####
 #Create a date series for 2023 spaced 8 days apart
 LandsatDates = data.frame("Date_interval_start" = seq(ymd("1989-01-01"),ymd("2023-12-27"), by = "8 days"))
 
-overlap = read.csv("PolygonProperties_v15_1989_2023.csv",header=T)
+#overlap = read.csv("PolygonProperties_v15_1989_2023.csv",header=T)
+overlap = read.csv("PolygonProperties_v15_1989_2023.csv")
 overlap$Date_interval_start = ymd(stri_sub(overlap$Date_interval_start,from = 1,to = 10))
 
 overlap = left_join(LandsatDates,overlap)
