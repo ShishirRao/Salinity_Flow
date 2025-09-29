@@ -16,91 +16,59 @@ setwd("E:/Shishir/FieldData/Analysis/Reflectance/")
 
 
 # function to combine the values for each site based on cloud free data availability
-SiteCombine <- function(pix_wide) {
+SiteCombine <- function(pix_wide,Combine) {
   
   pix_wide$Reflect = as.numeric(0)
-  # 
-  # ## Agha
-  pix_wide$Agha_water_dry[which(is.na(pix_wide$Agha_water_dry) & pix_wide$River == "Agha")] =
-    pix_wide$Agha_water_wet1[which(is.na(pix_wide$Agha_water_dry) & pix_wide$River == "Agha")]
-
-  pix_wide$Agha_water_dry[which(is.na(pix_wide$Agha_water_dry) & pix_wide$River == "Agha")] =
-    pix_wide$Agha_water_wet2[which(is.na(pix_wide$Agha_water_dry) & pix_wide$River == "Agha")]
-
-  pix_wide$Reflect[pix_wide$River == "Agha"] = pix_wide$Agha_water_dry[pix_wide$River == "Agha"]
-
-  #Gang
-  pix_wide$Gang_water_dry[which(is.na(pix_wide$Gang_water_dry) & pix_wide$River == "Gang")] =
-    pix_wide$Gang_water_wet1[which(is.na(pix_wide$Gang_water_dry) & pix_wide$River == "Gang")]
-
-  pix_wide$Gang_water_dry[which(is.na(pix_wide$Gang_water_dry) & pix_wide$River == "Gang")] =
-    pix_wide$Gang_water_wet2[which(is.na(pix_wide$Gang_water_dry) & pix_wide$River == "Gang")]
-
-  pix_wide$Reflect[pix_wide$River == "Gang"] = pix_wide$Gang_water_dry[pix_wide$River == "Gang"]
-
-  #Kali
-  pix_wide$Kali_water_dry[which(is.na(pix_wide$Kali_water_dry) & pix_wide$River == "Kali")] =
-    pix_wide$Kali_water_wet1[which(is.na(pix_wide$Kali_water_dry) & pix_wide$River == "Kali")]
-
-  pix_wide$Reflect[pix_wide$River == "Kali"] = pix_wide$Kali_water_dry[pix_wide$River == "Kali"]
-
-  #Shar
-  pix_wide$Shar_water_dry[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")] =
-    pix_wide$Shar_water_dry1[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")]
-
-  pix_wide$Shar_water_dry[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")] =
-    pix_wide$Shar_water_dry2[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")]
-
-  pix_wide$Shar_water_dry[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")] =
-    pix_wide$Shar_water_dry3[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")]
-
-  pix_wide$Shar_water_dry[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")] =
-    pix_wide$Shar_water_wet1[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")]
-
-  pix_wide$Reflect[pix_wide$River == "Shar"] = pix_wide$Shar_water_dry[pix_wide$River == "Shar"]
-
-#   pix_wide$Reflect = as.numeric(0)
-#   pix_wide$Reflect[pix_wide$River == "Agha"] = pix_wide$Agha_water_dry[pix_wide$River == "Agha"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-05-25") & pix_wide$River == "Agha"] = pix_wide$Agha_water_wet1[pix_wide$ImgDates == ymd("2023-05-25") & pix_wide$River == "Agha"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-06-10") & pix_wide$River == "Agha"] = pix_wide$Agha_water_wet1[pix_wide$ImgDates == ymd("2023-06-10") & pix_wide$River == "Agha"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-05") & pix_wide$River == "Agha"] = pix_wide$Agha_water_wet1[pix_wide$ImgDates == ymd("2023-08-05") & pix_wide$River == "Agha"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-07-28") & pix_wide$River == "Agha"] = pix_wide$Agha_water_wet2[pix_wide$ImgDates == ymd("2023-07-28") & pix_wide$River == "Agha"]
-# #  cloud shadow affects wet1 on 2023-08-21 but not detected by algorithm. So use wet 2 point.
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-21") & pix_wide$River == "Agha"] = pix_wide$Agha_water_wet2[pix_wide$ImgDates == ymd("2023-08-21") & pix_wide$River == "Agha"]
-# 
-# 
-# 
-#   pix_wide$Reflect[pix_wide$River == "Gang"] = pix_wide$Gang_water_dry[pix_wide$River == "Gang"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-05-25") & pix_wide$River == "Gang"] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-05-25") & pix_wide$River == "Gang"]
-#   #wet 2 from Gangavali is down at the estuary!
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-07-20") & pix_wide$River == "Gang"] = pix_wide$Gang_water_wet2[pix_wide$ImgDates == ymd("2023-07-20") & pix_wide$River == "Gang"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-07-28") & pix_wide$River == "Gang"] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-07-28") & pix_wide$River == "Gang"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-13") & pix_wide$River == "Gang"] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-08-13") & pix_wide$River == "Gang"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-21") & pix_wide$River == "Gang"] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-08-21") & pix_wide$River == "Gang"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-09-06") & pix_wide$River == "Gang"] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-09-06") & pix_wide$River == "Gang"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-11-01") & pix_wide$River == "Gang"] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-11-01") & pix_wide$River == "Gang"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-12-03") & pix_wide$River == "Gang"] = pix_wide$Gang_water_wet1[pix_wide$ImgDates == ymd("2023-12-03") & pix_wide$River == "Gang"]
-# 
-# 
-# 
-# 
-#   pix_wide$Reflect[pix_wide$River == "Kali"] = pix_wide$Kali_water_dry[pix_wide$River == "Kali"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-21") & pix_wide$River == "Kali"] = pix_wide$Kali_water_wet1[pix_wide$ImgDates == ymd("2023-08-21") & pix_wide$River == "Kali"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-12-19") & pix_wide$River == "Kali"] = pix_wide$Kali_water_wet1[pix_wide$ImgDates == ymd("2023-12-19") & pix_wide$River == "Kali"]
-# 
-# 
-# 
-#   pix_wide$Reflect[pix_wide$River == "Shar"] = pix_wide$Shar_water_dry[pix_wide$River == "Shar"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-04-15") & pix_wide$River == "Shar"] = pix_wide$Shar_water_dry1[pix_wide$ImgDates == ymd("2023-04-15") & pix_wide$River == "Shar"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-05-09") & pix_wide$River == "Shar"] = pix_wide$Shar_water_dry2[pix_wide$ImgDates == ymd("2023-05-09") & pix_wide$River == "Shar"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-06-10") & pix_wide$River == "Shar"] = pix_wide$Shar_water_dry3[pix_wide$ImgDates == ymd("2023-06-10") & pix_wide$River == "Shar"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-05") & pix_wide$River == "Shar"] = pix_wide$Shar_water_wet1[pix_wide$ImgDates == ymd("2023-08-05") & pix_wide$River == "Shar"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-08-21") & pix_wide$River == "Shar"] = pix_wide$Shar_water_dry2[pix_wide$ImgDates == ymd("2023-08-21") & pix_wide$River == "Shar"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-09-06") & pix_wide$River == "Shar"] = pix_wide$Shar_water_dry1[pix_wide$ImgDates == ymd("2023-09-06") & pix_wide$River == "Shar"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-11-25") & pix_wide$River == "Shar"] = pix_wide$Shar_water_dry1[pix_wide$ImgDates == ymd("2023-11-25") & pix_wide$River == "Shar"]
-#   pix_wide$Reflect[pix_wide$ImgDates == ymd("2023-12-11") & pix_wide$River == "Shar"] = pix_wide$Shar_water_dry1[pix_wide$ImgDates == ymd("2023-12-11") & pix_wide$River == "Shar"]
-
-
+  
+  if(Combine == "Yes"){
+      
+  
+    # ## Agha
+    pix_wide$Agha_water_dry[which(is.na(pix_wide$Agha_water_dry) & pix_wide$River == "Agha")] =
+      pix_wide$Agha_water_wet1[which(is.na(pix_wide$Agha_water_dry) & pix_wide$River == "Agha")]
+  
+    pix_wide$Agha_water_dry[which(is.na(pix_wide$Agha_water_dry) & pix_wide$River == "Agha")] =
+      pix_wide$Agha_water_wet2[which(is.na(pix_wide$Agha_water_dry) & pix_wide$River == "Agha")]
+  
+    pix_wide$Reflect[pix_wide$River == "Agha"] = pix_wide$Agha_water_dry[pix_wide$River == "Agha"]
+  
+    #Gang
+    pix_wide$Gang_water_dry[which(is.na(pix_wide$Gang_water_dry) & pix_wide$River == "Gang")] =
+      pix_wide$Gang_water_wet1[which(is.na(pix_wide$Gang_water_dry) & pix_wide$River == "Gang")]
+  
+    pix_wide$Gang_water_dry[which(is.na(pix_wide$Gang_water_dry) & pix_wide$River == "Gang")] =
+      pix_wide$Gang_water_wet2[which(is.na(pix_wide$Gang_water_dry) & pix_wide$River == "Gang")]
+  
+    pix_wide$Reflect[pix_wide$River == "Gang"] = pix_wide$Gang_water_dry[pix_wide$River == "Gang"]
+  
+    #Kali
+    pix_wide$Kali_water_dry[which(is.na(pix_wide$Kali_water_dry) & pix_wide$River == "Kali")] =
+      pix_wide$Kali_water_wet1[which(is.na(pix_wide$Kali_water_dry) & pix_wide$River == "Kali")]
+  
+    pix_wide$Reflect[pix_wide$River == "Kali"] = pix_wide$Kali_water_dry[pix_wide$River == "Kali"]
+  
+    #Shar
+    pix_wide$Shar_water_dry[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")] =
+      pix_wide$Shar_water_dry1[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")]
+  
+    pix_wide$Shar_water_dry[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")] =
+      pix_wide$Shar_water_dry2[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")]
+  
+    pix_wide$Shar_water_dry[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")] =
+      pix_wide$Shar_water_dry3[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")]
+  
+    pix_wide$Shar_water_dry[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")] =
+      pix_wide$Shar_water_wet1[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")]
+  
+    pix_wide$Reflect[pix_wide$River == "Shar"] = pix_wide$Shar_water_dry[pix_wide$River == "Shar"]
+  
+  }else{
+    pix_wide$Reflect[pix_wide$River == "Agha"] = pix_wide$Agha_water_dry[pix_wide$River == "Agha"]
+    pix_wide$Reflect[pix_wide$River == "Gang"] = pix_wide$Gang_water_dry[pix_wide$River == "Gang"]
+    pix_wide$Reflect[pix_wide$River == "Kali"] = pix_wide$Kali_water_dry[pix_wide$River == "Kali"]
+    pix_wide$Reflect[pix_wide$River == "Shar"] = pix_wide$Shar_water_dry[pix_wide$River == "Shar"]
+  }
+  
   
   pix_wide = pix_wide %>% select(-c(Agha_water_dry,Agha_water_wet1,Agha_water_wet2,
                                     Gang_water_dry,Gang_water_wet1,Gang_water_wet2,
@@ -430,6 +398,7 @@ areas = read.csv("polygon_areas.csv",header=T)
 head(areas)
 areas = areas %>% select(area,name,Type) %>% rename(area = area,site = name)
 
+
 cloudStat = read.csv("CloudStat_1989_2023.csv",header=T)
 cloudStat$date = ymd(stri_sub(cloudStat$date,from = 1,to = 10))
 cloudStat = cloudStat %>% rename(site=name,ImgDates = date,Cloud = cloud_mask)
@@ -481,16 +450,19 @@ unique(pix_back$Remove)
 
 pix_back$Remove = replace_na(pix_back$Remove,"Keep")
 pix_back = pix_back %>% filter(Remove != "Yes")
-pix_back = pix_back %>% filter(Type == "Sampling")
+
+# keep only sampling sites. 
+#pix_back = pix_back %>% filter(Type == "Sampling")
 
 
 
 pix_back_red = pix_back %>% group_by(site,ImgDates) %>% mutate(AvgRed = median(Red)) %>%
   select(site,ImgDates,River,AvgRed)  %>% distinct() %>% spread(site,AvgRed)
-names(pix_back_red)
 
 
-allSites = gather(pix_back_red %>% select(-Gang_water_wet2)  ,key = "Site",value = "Reflect",-c(ImgDates,River))
+# plotting all the individual sites. Only Gang_water_wet2 seems to deviate which is expected because it is in the estuary!
+#allSites = gather(pix_back_red %>% select(-Gang_water_wet2)  ,key = "Site",value = "Reflect",-c(ImgDates,River))
+allSites = gather(pix_back_red, key = "Site",value = "Reflect",-c(ImgDates,River))
 ggplot(allSites ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = Site,col = Site))+
   geom_smooth(aes(group = Site,col = Site),span = .5) + ggtitle("Red Reflectance from 1988 - 2023")+ xlab("Imagery date") + ylab("Red Reflectance")+
   scale_x_date(date_labels = "%y",date_breaks = "1000 day")+theme_bw()+ facet_grid(.~River) +
@@ -498,21 +470,45 @@ ggplot(allSites ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = Site,col
         axis.title=element_text(size=14,face="bold"))+
   theme(legend.position="bottom")
 
-# The downstream most site has higher reflectance than other sites. 
-pix_back_red$Gang_water_wet2 = NA
 
-# combine the values for each site based on cloud free data availability
-AvgRed = SiteCombine(pix_back_red) %>% rename(AvgRed = Reflect)
+SamplingSites = gather(pix_back_red ,key = "Site",value = "Reflect",-c(ImgDates,River))
+ggplot(SamplingSites ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = Site,col = Site))+
+  geom_smooth(aes(group = Site,col = Site),span = .2) + ggtitle("Red Reflectance from 1988 - 2023")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  scale_x_date(date_labels = "%y",date_breaks = "1000 day")+theme_bw() +
+  theme(axis.text=element_text(size=13),
+        axis.title=element_text(size=14,face="bold"))+
+  theme(legend.position="bottom")
+
+
+# The downstream most site has higher reflectance than other sites. 
+# pix_back_red$Gang_water_wet2 = NA
+
+# First plot only the sampling site 
+AvgRed = SiteCombine(pix_back_red,"No") %>% rename(AvgRed = Reflect)
 names(AvgRed)
 refl_long_back = gather(AvgRed,key = "Band",value = "Reflect",AvgRed)
 names(refl_long_back)
 unique(refl_long$ImgDates)
 
 ggplot(refl_long_back %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Red Reflectance from 1988 - 2023")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Red Reflectance from 1988 - 2023 from sampling sites")+ xlab("Imagery date") + ylab("Red Reflectance")+
   scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))
+
+
+AvgRed = SiteCombine(pix_back_red,"Yes") %>% rename(AvgRed = Reflect)
+names(AvgRed)
+refl_long_back = gather(AvgRed,key = "Band",value = "Reflect",AvgRed)
+names(refl_long_back)
+unique(refl_long$ImgDates)
+
+ggplot(refl_long_back %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
+  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Red Reflectance from 1988 - 2023 from all sites combined")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
+  theme(axis.text=element_text(size=13),
+        axis.title=element_text(size=14,face="bold"))
+
 
 
 refl_long_back$year = year(refl_long_back$ImgDates)
@@ -589,4 +585,19 @@ ggplot(data = SeasonalImages, aes(x = Year, y = No_of_Images_season, fill = Seas
                                                   axis.title=element_text(size=12,face="bold"))
 
 
+
+### PerRiverImage availability after corrections. ###
+AvgRed$year = year(AvgRed$ImgDates)
+AvgRed$month = month(AvgRed$ImgDates)
+AvgRed$season = ifelse(AvgRed$month >= 6 & AvgRed$month <= 11,"wet","dry")
+
+SeasonalImages = AvgRed %>% group_by(River,year,season) %>% mutate(Number_of_images = n()) %>%
+                 select(River,year,season,Number_of_images) %>% distinct()
+
+
+ggplot(data = SeasonalImages, aes(x = year, y = Number_of_images, fill = season)) +
+  geom_bar(stat = "identity", position = "stack") + xlab("Year") + 
+  ylab("No of Landsat Images")+ facet_grid(.~River)+
+  theme_bw() + theme(legend.position="bottom") +   
+  theme(axis.text=element_text(size=12),axis.title=element_text(size=12,face="bold"))
 
