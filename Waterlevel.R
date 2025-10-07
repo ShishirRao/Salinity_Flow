@@ -133,6 +133,7 @@ ggplot(WLR_Shar, aes(x=Date_time , y=kPa)) +
   theme(axis.text=element_text(size=16),
         axis.title=element_text(size=18,face="bold"))
 
+head(WLR_Shar)
 #ggsave("E:/Shishir/FieldData/Results/Shar_WLR.jpg", width = 8, height = 3,scale = 2)
 
 

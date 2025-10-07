@@ -466,7 +466,7 @@ pix_back_red = pix_back %>% group_by(site,ImgDates) %>% mutate(AvgRed = median(R
 allSites = gather(pix_back_red, key = "Site",value = "Reflect",-c(ImgDates,River))
 ggplot(allSites,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = Site,col = Site))+
   geom_smooth(aes(group = Site,col = Site),span = .5) + ggtitle("Red Reflectance from 1988 - 2023")+ xlab("Imagery date") + ylab("Red Reflectance")+
-  scale_x_date(date_labels = "%y",date_breaks = "1000 day")+theme_bw()+ facet_grid(.~River) +
+  scale_x_date(date_labels = "%y",date_breaks = "2000 day")+theme_bw()+ facet_grid(.~River) +
   theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))+
   theme(legend.position="bottom")
