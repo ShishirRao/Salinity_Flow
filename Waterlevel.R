@@ -205,9 +205,15 @@ WLR4 = read.csv("Analysis/WaterLevel/Kali/Kali_WLR_30ft_Sep7.csv",header=T)
 names(WLR4) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 head(WLR4)
 
-WLR5 = read.csv("Analysis/WaterLevel/Kali/Kali_30ft_Titanium_Dec12.csv",header=T)
+WLR5 = read.csv("Analysis/WaterLevel/Kali/Kali_30ft_Titanium_Mar24.csv",header=T)
 names(WLR5) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 head(WLR5)
+tail(WLR5)
+
+WLR6 = read.csv("Analysis/WaterLevel/Kali/Kali_30ft_Titanium_Dec12.csv",header=T)
+names(WLR6) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
+head(WLR6)
+tail(WLR6)
 
 
 
@@ -215,6 +221,7 @@ WLR = rbind(WLR1,WLR2)
 WLR = rbind(WLR,WLR3)
 WLR = rbind(WLR,WLR4)
 WLR = rbind(WLR,WLR5)
+WLR = rbind(WLR,WLR6)
 
 WLR = WLR5
 
@@ -228,7 +235,7 @@ Kali_WLR = ggplot(WLR[WLR$SlNo>10,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
   xlab("")+
   ylab(" ")+
-  scale_x_datetime(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
+  scale_x_datetime(date_labels = "%b-%y",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=13,face="bold"))
 
