@@ -91,7 +91,7 @@ names(Agha_bar_ERA5)
 
 Agha_depth = left_join(Agha_depth,Agha_bar_ERA5 %>% select(date, hour, AirPressure_ERA5_hpa))
 
-Agha_depth = Agha_depth %>% select(Date_time,month,Temp_degC_WLR,TotalPressure_hPa,Ch3_Value,AirPressure_ERA5_hpa)
+Agha_depth = Agha_depth %>% select(date,Date_time,month,Temp_degC_WLR,TotalPressure_hPa,Ch3_Value,AirPressure_ERA5_hpa)
 
 Agha_depth$month == 5 | Agha_depth$month == 6
 
@@ -113,9 +113,29 @@ Agha_depth$WaterPressure_hPa = Agha_depth$TotalPressure_hPa - Agha_depth$AirPres
 
 Agha_depth$depth = Agha_depth$WaterPressure_hPa * 100 / (1000 * 9.81)
 
+temp = Agha_depth
+Agha_depth = temp
 
-ggplot(Agha_depth[Agha_depth$month == 6,],aes(y = depth, x =Date_time ))+geom_line()+
-  scale_x_datetime(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()
+#corrections for issues while logger removal, redeploying and repositioning
+# NA value at the beginning
+Agha_depth = Agha_depth %>% filter(Agha_depth$Date_time >  ymd_hms("2023-03-08 13:50:00"))
+# zero value read when logger was taken out to read
+Agha_depth$depth[Agha_depth$Date_time == ymd_hms("2023-04-15 14:50:00")] = NA
+Agha_depth$depth[Agha_depth$Date_time >= ymd_hms("2023-05-01 9:00:00") & Agha_depth$Date_time <= ymd_hms("2023-05-01 18:20:00")] = NA
+
+# zero value read when logger was taken out to read
+Agha_depth$depth[Agha_depth$Date_time == ymd_hms("2023-06-27 16:35:00")] = NA
+
+#logger put back at a lower depth because the river was drying up. 
+offset = Agha_depth$depth[Agha_depth$Date_time == ymd_hms("2023-06-27 16:30:00")] - Agha_depth$depth[Agha_depth$Date_time == ymd_hms("2023-06-27 17:15:00")]
+# find the difference in depth (offset), and add the offset to all future values. 
+Agha_depth$depth[Agha_depth$Date_time >= ymd_hms("2023-06-27 17:15:00")] = Agha_depth$depth[Agha_depth$Date_time >= ymd_hms("2023-06-27 17:15:00")] + offset
+
+Agha_depth$depth[Agha_depth$Date_time >= ymd_hms("2023-11-14 17:00:00")] = NA
+
+ggplot(Agha_depth,aes(y = depth, x =Date_time ))+geom_line()+
+  scale_x_datetime(date_labels = "%b:%d",date_breaks = "30 days")+theme_bw()
+
 
 
 ### Let us look at Sharavathi barometric data ###

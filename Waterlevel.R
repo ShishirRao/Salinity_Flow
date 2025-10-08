@@ -215,6 +215,12 @@ names(WLR6) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 head(WLR6)
 tail(WLR6)
 
+WLR7 = read.csv("Analysis/WaterLevel/Kali/Kali_WLR_30ft_Dec19.csv",header=T)
+names(WLR7) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
+head(WLR7)
+tail(WLR7)
+
+
 
 
 WLR = rbind(WLR1,WLR2)
@@ -222,14 +228,16 @@ WLR = rbind(WLR,WLR3)
 WLR = rbind(WLR,WLR4)
 WLR = rbind(WLR,WLR5)
 WLR = rbind(WLR,WLR6)
+WLR = rbind(WLR,WLR7)
 
-WLR = WLR5
+#WLR = WLR5
 
 names(WLR) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 head(WLR)
 
 WLR$Date_time = mdy_hm(WLR$Date_time)
 
+WLR_Kali = WLR
 
 Kali_WLR = ggplot(WLR[WLR$SlNo>10,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
@@ -239,6 +247,7 @@ Kali_WLR = ggplot(WLR[WLR$SlNo>10,], aes(x=Date_time , y=kPa)) +
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=13,face="bold"))
 
+Kali_WLR
 
 ggplot(WLR[WLR$SlNo>2000 ,], aes(x=Date_time , y=kPa)) +
   geom_line() + 
