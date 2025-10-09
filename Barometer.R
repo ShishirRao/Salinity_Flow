@@ -1,3 +1,10 @@
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(tidyr)
+library(stringr)
+library(gridExtra)
+
 ### Get the Agha field measured air pressure ###
 
 setwd("E:/Shishir/FieldData/Analysis/Barometer/Agha")
@@ -250,9 +257,14 @@ Shar_depth$WaterPressure_hPa = Shar_depth$TotalPressure_hPa - Shar_depth$AirPres
 
 Shar_depth$depth = Shar_depth$WaterPressure_hPa * 100 / (1000 * 9.81)
 
+Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-04-15 11:20:00")] = NA
+Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-06-02 11:30:00")] = NA
+Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-06-26 11:40:00")] = NA
+Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-09-20 11:15:00")] = NA
+Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2024-03-20 21:00:00")] = NA
 
-ggplot(Shar_depth,aes(y = depth, x =Date_time ))+geom_line()+
-  scale_x_datetime(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()
+ggplot(Shar_depth[Shar_depth$Date_time > ymd_hms("2024-03-20 20:00:00")],aes(y = depth, x =Date_time ))+geom_line()+
+  scale_x_datetime(date_labels = "%b-%d-%y",date_breaks = "30 day")+theme_bw()
 
 
 
