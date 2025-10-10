@@ -140,8 +140,10 @@ Agha_depth$depth[Agha_depth$Date_time >= ymd_hms("2023-06-27 17:15:00")] = Agha_
 
 Agha_depth$depth[Agha_depth$Date_time >= ymd_hms("2023-11-14 17:00:00")] = NA
 
-ggplot(Agha_depth,aes(y = depth, x =Date_time ))+geom_line()+
-  scale_x_datetime(date_labels = "%b:%d",date_breaks = "30 days")+theme_bw()
+Agha_depth_plot = ggplot(Agha_depth,aes(y = depth, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Water depth (meters)")+
+  scale_x_datetime(date_labels = "%b-%y",date_breaks = "30 days")+theme_bw() + ggtitle ("Aghanashini")
+  theme(axis.text=element_text(size=16),
+        axis.title=element_text(size=18,face="bold"))
 
 
 
@@ -188,7 +190,7 @@ Shar_bar$datetime_round = ymd_hms(paste0(Shar_bar$date," ",Shar_bar$hour,":",Sha
 
 class(Shar_bar$datetime)
 
-ggplot(Shar_bar,aes(y = daily_atm, x = date))+geom_point()+
+ ggplot(Shar_bar,aes(y = daily_atm, x = date))+geom_point()+
   geom_smooth(span = .5)+
   scale_x_date(date_labels = "%b-%d",date_breaks = "5 day")+theme_bw()
 
@@ -263,7 +265,7 @@ Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-06-26 11:40:00")] = NA
 Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-09-20 11:15:00")] = NA
 Shar_depth$depth[Shar_depth$Date_time >= ymd_hms("2024-03-20 12:15:00")] = NA
 
-ggplot(Shar_depth[],aes(y = depth, x =Date_time ))+geom_line()+
+Shar_depth_plot = ggplot(Shar_depth[],aes(y = depth, x =Date_time ))+geom_line()+
   scale_x_datetime(date_labels = "%b-%d",date_breaks = "30 days")+theme_bw()
 
 
@@ -331,8 +333,8 @@ Gang_depth$depth[Gang_depth$Date_time >= ymd_hms("2023-12-05 14:00:00")] =
 
 Gang_depth = Gang_depth %>% filter(Date_time < ymd_hms("2024-03-14 13:15:00"))
 
-ggplot(Gang_depth[Gang_depth$month == 3,],aes(y = depth, x =Date_time ))+geom_line()+
-  scale_x_datetime(date_labels = "%b:%d",date_breaks = "3 days")+theme_bw()
+Gang_depth_plot = ggplot(Gang_depth,aes(y = depth, x =Date_time ))+geom_line()+
+  scale_x_datetime(date_labels = "%b:%d",date_breaks = "30 days")+theme_bw()
 
 
 ### Read Kali's remote-sensed air pressure data ####
@@ -381,6 +383,88 @@ Kali_depth$WaterPressure_hPa = Kali_depth$TotalPressure_hPa - Kali_depth$AirPres
 Kali_depth$depth = Kali_depth$WaterPressure_hPa * 100 / (1000 * 9.81)
 
 
-ggplot(Kali_depth,aes(y = depth, x =Date_time ))+geom_line()+
-  scale_x_datetime(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()
+Kali_depth$depth[Kali_depth$Date_time > ymd_hms("2023-05-30 12:20:00") & 
+             Kali_depth$Date_time < ymd_hms("2023-06-18 19:15:00")] = NA
+
+Kali_depth$depth[Kali_depth$Date_time > ymd_hms("2023-07-08 00:00:00") & 
+                   Kali_depth$Date_time < ymd_hms("2023-07-13 00:00:00")] = NA
+
+Kali_depth$depth[Kali_depth$Date_time > ymd_hms("2023-09-06 12:00:00") & 
+                   Kali_depth$Date_time < ymd_hms("2023-09-11 00:00:00")] = NA
+
+Kali_depth$depth[Kali_depth$Date_time > ymd_hms("2023-12-18 12:00:00") & 
+                   Kali_depth$Date_time < ymd_hms("2024-01-04 00:00:00")] = NA
+
+Kali_depth$depth[Kali_depth$Date_time >= ymd_hms("2024-03-24 09:00:00")] = NA
+
+
+Kali_depth_plot =ggplot(Kali_depth,aes(y = depth, x =Date_time ))+geom_line()+
+  scale_x_datetime(date_labels = "%b-%d",date_breaks = "30 days")+theme_bw()
+
+
+
+##### plotting ######
+
+Agha_depth_plot = ggplot(Agha_depth,aes(y = depth, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Water depth (meters)")+
+  scale_x_datetime(date_labels = "%b%n%Y",date_breaks = "30 days")+theme_bw() + ggtitle ("Aghanashini")+
+theme(axis.text=element_text(size=14),
+      axis.title=element_text(size=16,face="bold"),
+      plot.title = element_text(size = 20, face = "bold"))
+
+Shar_depth_plot = ggplot(Shar_depth,aes(y = depth, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Water depth (meters)")+
+  scale_x_datetime(date_labels = "%b%n%Y",date_breaks = "30 days")+theme_bw() + ggtitle ("Sharavathi")+
+  theme(axis.text=element_text(size=14),
+        axis.title=element_text(size=16,face="bold"),
+        plot.title = element_text(size = 20, face = "bold"))
+
+Gang_depth_plot = ggplot(Gang_depth,aes(y = depth, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Water depth (meters)")+
+  scale_x_datetime(date_labels = "%b%n%Y",date_breaks = "30 days")+theme_bw() + ggtitle ("Gangavali")+
+  theme(axis.text=element_text(size=14),
+        axis.title=element_text(size=16,face="bold"),
+        plot.title = element_text(size = 20, face = "bold"))
+
+Kali_depth_plot = ggplot(Kali_depth,aes(y = depth, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Water depth (meters)")+
+  scale_x_datetime(date_labels = "%b%n%Y",date_breaks = "30 days")+theme_bw() + ggtitle ("Kali")+
+  theme(axis.text=element_text(size=14),
+        axis.title=element_text(size=16,face="bold"),
+        plot.title = element_text(size = 20, face = "bold"))
+
+mylegend<-g_legend(Agha_depth_plot)
+
+?sapply
+
+WLRs <- grid.arrange(arrangeGrob(Agha_depth_plot + theme(legend.position="none") + ggtitle("Aghanashini (free)"),
+                                 Shar_depth_plot + theme(legend.position="none") + ggtitle("Sharavathi (dammed)"),
+                                 Gang_depth_plot + theme(legend.position="none") + ggtitle("Gangavali (free)"),
+                                 Kali_depth_plot + theme(legend.position="none") + ggtitle("Kali (dammed)"),
+                                 nrow=1,ncol=4),heights=c(6, 1))
+
+WLRs <- grid.arrange(arrangeGrob(Agha_depth_plot + theme(legend.position="none") + ggtitle("Aghanashini (free)"),
+                                 Shar_depth_plot + theme(legend.position="none") + ggtitle("Sharavathi (dammed)"),
+                                 Gang_depth_plot + theme(legend.position="none") + ggtitle("Gangavali (free)"),
+                                 Kali_depth_plot + theme(legend.position="none") + ggtitle("Kali (dammed)"),
+                                 nrow=2,ncol=2),heights=c(6, 1))
+
+
+plot(WLRs)
+
+
+library(ggplot2)
+library(cowplot)
+
+# Create main plot
+p_main <- ggplot(mtcars, aes(mpg, hp)) +
+  geom_point() +
+  ggtitle("Main Plot")
+
+# Create inset plot
+p_inset <- ggplot(mtcars, aes(cyl)) +
+  geom_bar() +
+  ggtitle("Inset Plot") +
+  theme(plot.title = element_text(size = 8)) # Smaller title for inset
+
+# Combine plots using cowplot
+ggdraw() +
+  draw_plot(p_main, x = 0, y = 0, width = 1, height = 1) +
+  draw_plot(p_inset, x = 0.6, y = 0.6, width = 0.35, height = 0.35) # Position and size of inset
 
