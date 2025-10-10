@@ -156,10 +156,14 @@ WLR4 = read.csv("Analysis/WaterLevel/Gang/Gangavali_30ftWLR_Dec5.csv",header=T)
 names(WLR4) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 head(WLR4)
 
+WLR5 = read.csv("Analysis/WaterLevel/Gang/Gang_WLR_Titanium_Mar20.csv",header=T)
+names(WLR5) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
+tail(WLR5)
 
 WLR_Gang = rbind(WLR1,WLR2)
 WLR_Gang = rbind(WLR_Gang,WLR3)
 WLR_Gang = rbind(WLR_Gang,WLR4)
+WLR_Gang = rbind(WLR_Gang,WLR5)
 
 names(WLR_Gang) = c("SlNo","Date_time","kPa","Temp_degC_WLR")
 

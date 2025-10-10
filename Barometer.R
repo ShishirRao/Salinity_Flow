@@ -261,10 +261,10 @@ Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-04-15 11:20:00")] = NA
 Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-06-02 11:30:00")] = NA
 Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-06-26 11:40:00")] = NA
 Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-09-20 11:15:00")] = NA
-Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2024-03-20 21:00:00")] = NA
+Shar_depth$depth[Shar_depth$Date_time >= ymd_hms("2024-03-20 12:15:00")] = NA
 
-ggplot(Shar_depth[Shar_depth$Date_time > ymd_hms("2024-03-20 20:00:00")],aes(y = depth, x =Date_time ))+geom_line()+
-  scale_x_datetime(date_labels = "%b-%d-%y",date_breaks = "30 day")+theme_bw()
+ggplot(Shar_depth[],aes(y = depth, x =Date_time ))+geom_line()+
+  scale_x_datetime(date_labels = "%b-%d",date_breaks = "30 days")+theme_bw()
 
 
 
@@ -313,9 +313,26 @@ Gang_depth$WaterPressure_hPa = Gang_depth$TotalPressure_hPa - Gang_depth$AirPres
 
 Gang_depth$depth = Gang_depth$WaterPressure_hPa * 100 / (1000 * 9.81)
 
+Gang_depth$depth[Gang_depth$Date_time == ymd_hms("2023-05-08 17:00:00")] = NA
+Gang_depth$depth[Gang_depth$Date_time == ymd_hms("2023-06-16 14:40:00")] = NA
+Gang_depth$depth[Gang_depth$Date_time == ymd_hms("2023-08-13 14:30:00")] = NA
+Gang_depth$depth[Gang_depth$Date_time == ymd_hms("2023-12-05 13:45:00")] = NA
 
-ggplot(Gang_depth,aes(y = depth, x =Date_time ))+geom_line()+
-  scale_x_datetime(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()
+
+offset = Gang_depth$depth[Gang_depth$Date_time == ymd_hms("2023-08-13 14:15:00")] - Gang_depth$depth[Gang_depth$Date_time == ymd_hms("2023-08-13 15:30:00")]
+Gang_depth$depth[Gang_depth$Date_time >= ymd_hms("2023-08-13 15:30:00")] = 
+  Gang_depth$depth[Gang_depth$Date_time >= ymd_hms("2023-08-13 15:30:00")] + offset
+
+
+offset = Gang_depth$depth[Gang_depth$Date_time == ymd_hms("2023-12-05 14:00:00")] - Gang_depth$depth[Gang_depth$Date_time == ymd_hms("2023-12-05 13:15:00")]
+
+Gang_depth$depth[Gang_depth$Date_time >= ymd_hms("2023-12-05 14:00:00")] = 
+  Gang_depth$depth[Gang_depth$Date_time >= ymd_hms("2023-12-05 14:00:00")] - offset
+
+Gang_depth = Gang_depth %>% filter(Date_time < ymd_hms("2024-03-14 13:15:00"))
+
+ggplot(Gang_depth[Gang_depth$month == 3,],aes(y = depth, x =Date_time ))+geom_line()+
+  scale_x_datetime(date_labels = "%b:%d",date_breaks = "3 days")+theme_bw()
 
 
 ### Read Kali's remote-sensed air pressure data ####
