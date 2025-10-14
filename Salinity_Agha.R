@@ -69,7 +69,7 @@ Sal_Agha = Sal_Agha %>% filter(Date_time >= ymd_hms("2023-03-29 11:50:00"))
 Sal_Agha$Salinity[Sal_Agha$Date_time == ymd_hms("2023-06-21 08:40:00")] = NA
 
 
-ggplot(Sal_Agha,aes(y = Salinity, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Salinity (meters)")+
+ggplot(Sal_Agha,aes(y = Salinity, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Salinity (ppm)")+
   scale_x_datetime(date_labels = "%b%n%Y",date_breaks = "30 days")+theme_bw() + ggtitle ("Aghanashini")+
   theme(axis.text=element_text(size=14),
         axis.title=element_text(size=16,face="bold"),
@@ -79,14 +79,14 @@ ggplot(Sal_Agha,aes(y = Salinity, x =Date_time ))+geom_line()+ xlab("Date")+ yla
 Sal1 = read.csv("Analysis/Salinity/Kali_Saltwater_23_dec.csv",header=T)
 Sal2 = read.csv("Analysis/Salinity/Kali_Seawater_from_Agha_Apr29.csv",header=T)
 Sal3 = read.csv("Analysis/Salinity/Kali_Seawater_Dec12.csv",header=T)
-head(Sal2)
+head(Sal)
 
 
 names(Sal1) = c("SlNo","Date_time","Conductivity_uScm","Temp_degC_Cond")
 names(Sal2) = c("SlNo","Date_time","Conductivity_uScm","Temp_degC_Cond")
 names(Sal3) = c("SlNo","Date_time","Conductivity_uScm","Temp_degC_Cond")
-#Sal = rbind(Sal1,Sal2)
-Sal = Sal3
+Sal = rbind(Sal1,Sal2)
+Sal = rbind(Sal, Sal3)
 Sal$Date_time = mdy_hm(Sal$Date_time)
 
 #Calculate Salinity from Conductivity
@@ -112,11 +112,15 @@ ggplot(Sal[Sal$SlNo < 5000,], aes(x=Date_time , y=Salinity)) +
 Kali_sal
 
 Kali_sal = Sal
-Kali_sal$month = Kali_sal(Kali_sal$Date_time)
+Kali_sal$month = month(Kali_sal$Date_time)
 
 
-ggplot(Kali_sal[Kali_sal$month ==5,],aes(y = Salinity, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Salinity (meters)")+
-  scale_x_datetime(date_labels = "%b%n%Y",date_breaks = "30 days")+theme_bw() + ggtitle ("Kali")+
+Kali_sal$Salinity[Kali_sal$Date_time < ymd_hms("2023-12-20 17:00:00")] = NA
+Kali_sal$Salinity[Kali_sal$Date_time > ymd_hms("2024-06-15 10:00:00")] = NA
+
+
+ggplot(Kali_sal[Kali_sal$month <= 6,],aes(y = Salinity, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Salinity (ppm)")+
+  scale_x_datetime(date_labels = "%b%n%d",date_breaks = "30 days")+theme_bw() + ggtitle ("Kali")+
   theme(axis.text=element_text(size=14),
         axis.title=element_text(size=16,face="bold"),
         plot.title = element_text(size = 20, face = "bold"))

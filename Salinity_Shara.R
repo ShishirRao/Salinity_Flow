@@ -56,4 +56,22 @@ ggplot(Sal[Sal$SlNo,], aes(x=Date_time , y=Salinity)) +
         axis.title=element_text(size=18,face="bold"))
 
 
-#ggsave("E:/Shishir/FieldData/Results/Shar_Salinity.jpg", width = 8, height = 3,scale = 2)
+Sal_Shar = Sal
+Sal_Shar$month = month(Sal_Shar$Date_time)
+
+Sal_Shar$Salinity[Sal_Shar$Date_time == ymd_hms("2023-04-26 09:10:00")] = NA
+Sal_Shar$Salinity[Sal_Shar$Date_time >= ymd_hms("2024-03-20 14:15:00")] = NA
+
+
+
+ggplot(Sal_Shar,aes(y = Salinity, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Salinity (ppm)")+
+  scale_x_datetime(date_labels = "%b%n%d",date_breaks = "30 days")+theme_bw() + ggtitle ("Sharavathi")+
+  theme(axis.text=element_text(size=14),
+        axis.title=element_text(size=16,face="bold"),
+        plot.title = element_text(size = 20, face = "bold"))
+
+
+
+
+
+#ggsave("E:Sal_Shar#ggsave("E:/Shishir/FieldData/Results/Shar_Salinity.jpg", width = 8, height = 3,scale = 2)

@@ -25,11 +25,11 @@ Agha_bar = Agha_bar[Agha_bar$year >= 2023, ]
 
 Agha_bar$datetime = ymd_hms(paste(Agha_bar$date," ",Agha_bar$time))
 
-ggplot(Agha_bar,aes(y = Ch3_Value, x = datetime))+geom_point()+
-  geom_smooth(span = .5) +
-  scale_x_datetime(date_labels = "%y",date_breaks = "30 day")+theme_bw()+
-  theme(axis.text=element_text(size=13),
-        axis.title=element_text(size=14,face="bold"))
+# ggplot(Agha_bar,aes(y = Ch3_Value, x = datetime))+geom_point()+
+#   geom_smooth(span = .5) +
+#   scale_x_datetime(date_labels = "%y",date_breaks = "30 day")+theme_bw()+
+#   theme(axis.text=element_text(size=13),
+#         axis.title=element_text(size=14,face="bold"))
 
 Agha_bar$Ch3_Value = as.numeric(Agha_bar$Ch3_Value)
 
@@ -38,9 +38,9 @@ Agha_bar = Agha_bar %>% group_by(day) %>% mutate(daily_atm = median(Ch3_Value))
 Agha_bar = Agha_bar %>% group_by(date,Ch3_Value,day,year,daily_atm) %>% distinct()
 
 
-ggplot(Agha_bar,aes(y = daily_atm, x = date))+geom_point()+
-  geom_smooth(span = .5)+
-  scale_x_date(date_labels = "%b-%d",date_breaks = "5 day")+theme_bw()
+# ggplot(Agha_bar,aes(y = daily_atm, x = date))+geom_point()+
+#   geom_smooth(span = .5)+
+#   scale_x_date(date_labels = "%b-%d",date_breaks = "5 day")+theme_bw()
 
 names(Agha_bar)
 Agha_bar$hour = hour(Agha_bar$datetime)
@@ -167,11 +167,11 @@ Shar_bar = Shar_bar[Shar_bar$year >= 2023, ]
 
 Shar_bar$datetime = ymd_hms(paste(Shar_bar$date," ",Shar_bar$time))
 
-ggplot(Shar_bar,aes(y = Ch3_Value, x = datetime))+geom_point()+
-  geom_smooth(span = .5) +
-  scale_x_datetime(date_labels = "%b-%d",date_breaks = "5 day")+theme_bw()+
-  theme(axis.text=element_text(size=13),
-        axis.title=element_text(size=14,face="bold"))
+# ggplot(Shar_bar,aes(y = Ch3_Value, x = datetime))+geom_point()+
+#   geom_smooth(span = .5) +
+#   scale_x_datetime(date_labels = "%b-%d",date_breaks = "5 day")+theme_bw()+
+#   theme(axis.text=element_text(size=13),
+#         axis.title=element_text(size=14,face="bold"))
 
 Shar_bar$Ch3_Value = as.numeric(Shar_bar$Ch3_Value)
 
@@ -190,9 +190,9 @@ Shar_bar$datetime_round = ymd_hms(paste0(Shar_bar$date," ",Shar_bar$hour,":",Sha
 
 class(Shar_bar$datetime)
 
- ggplot(Shar_bar,aes(y = daily_atm, x = date))+geom_point()+
-  geom_smooth(span = .5)+
-  scale_x_date(date_labels = "%b-%d",date_breaks = "5 day")+theme_bw()
+ # ggplot(Shar_bar,aes(y = daily_atm, x = date))+geom_point()+
+ #  geom_smooth(span = .5)+
+ #  scale_x_date(date_labels = "%b-%d",date_breaks = "5 day")+theme_bw()
 
 
 ### Read Sharavathi's remote-sensed air pressure data ####
@@ -265,7 +265,7 @@ Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-06-26 11:40:00")] = NA
 Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-09-20 11:15:00")] = NA
 Shar_depth$depth[Shar_depth$Date_time >= ymd_hms("2024-03-20 12:15:00")] = NA
 
-Shar_depth_plot = ggplot(Shar_depth[],aes(y = depth, x =Date_time ))+geom_line()+
+Shar_depth_plot = ggplot(Shar_depth,aes(y = depth, x =Date_time ))+geom_line()+
   scale_x_datetime(date_labels = "%b-%d",date_breaks = "30 days")+theme_bw()
 
 
@@ -335,6 +335,9 @@ Gang_depth = Gang_depth %>% filter(Date_time < ymd_hms("2024-03-14 13:15:00"))
 
 Gang_depth_plot = ggplot(Gang_depth,aes(y = depth, x =Date_time ))+geom_line()+
   scale_x_datetime(date_labels = "%b:%d",date_breaks = "30 days")+theme_bw()
+
+ggplot(Gang_depth,aes(y = depth, x =Date_time ))+geom_line()+
+  scale_x_datetime(date_labels = "%b:%d",date_breaks = "10 days")+theme_bw()
 
 
 ### Read Kali's remote-sensed air pressure data ####
