@@ -264,6 +264,10 @@ Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-06-02 11:30:00")] = NA
 Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-06-26 11:40:00")] = NA
 Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-09-20 11:15:00")] = NA
 Shar_depth$depth[Shar_depth$Date_time >= ymd_hms("2024-03-20 12:15:00")] = NA
+Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-05-01 11:10:00")] = NA
+Shar_depth$depth[Shar_depth$Date_time == ymd_hms("2023-08-03 13:00:00")] = NA
+
+
 
 Shar_depth_plot = ggplot(Shar_depth,aes(y = depth, x =Date_time ))+geom_line()+
   scale_x_datetime(date_labels = "%b-%d",date_breaks = "30 days")+theme_bw()
@@ -385,8 +389,10 @@ Kali_depth$WaterPressure_hPa = Kali_depth$TotalPressure_hPa - Kali_depth$AirPres
 
 Kali_depth$depth = Kali_depth$WaterPressure_hPa * 100 / (1000 * 9.81)
 
+Kali_depth$year = year(Kali_depth$Date_time)
 
-Kali_depth$depth[Kali_depth$Date_time > ymd_hms("2023-05-30 12:20:00") & 
+
+Kali_depth$depth[Kali_depth$Date_time > ymd_hms("2023-05-30 7:20:00") & 
              Kali_depth$Date_time < ymd_hms("2023-06-18 19:15:00")] = NA
 
 Kali_depth$depth[Kali_depth$Date_time > ymd_hms("2023-07-08 00:00:00") & 
@@ -398,11 +404,18 @@ Kali_depth$depth[Kali_depth$Date_time > ymd_hms("2023-09-06 12:00:00") &
 Kali_depth$depth[Kali_depth$Date_time > ymd_hms("2023-12-18 12:00:00") & 
                    Kali_depth$Date_time < ymd_hms("2024-01-04 00:00:00")] = NA
 
-Kali_depth$depth[Kali_depth$Date_time >= ymd_hms("2024-03-24 09:00:00")] = NA
+Kali_depth$depth[Kali_depth$Date_time > ymd_hms("2024-03-24 07:15:00") & 
+                   Kali_depth$Date_time < ymd_hms("2024-04-13 12:00:00")] = NA
+
+Kali_depth$depth[Kali_depth$Date_time > ymd_hms("2024-05-10 09:00:00") & 
+                   Kali_depth$Date_time < ymd_hms("2024-05-11 12:50:00")] = NA
 
 
-Kali_depth_plot =ggplot(Kali_depth,aes(y = depth, x =Date_time ))+geom_line()+
-  scale_x_datetime(date_labels = "%b-%d",date_breaks = "30 days")+theme_bw()
+
+
+
+  ggplot(Kali_depth[Kali_depth$year == 2023 & Kali_depth$month == 7,],aes(y = depth, x =Date_time ))+geom_line()+
+  scale_x_datetime(date_labels = "%b%n%d",date_breaks = "30 days")+theme_bw()
 
 
 

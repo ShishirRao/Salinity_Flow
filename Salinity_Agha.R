@@ -69,7 +69,7 @@ Sal_Agha = Sal_Agha %>% filter(Date_time >= ymd_hms("2023-03-29 11:50:00"))
 Sal_Agha$Salinity[Sal_Agha$Date_time == ymd_hms("2023-06-21 08:40:00")] = NA
 
 
-ggplot(Sal_Agha,aes(y = Salinity, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Salinity (ppm)")+
+ggplot(Sal_Agha[Sal_Agha$month==4,],aes(y = Salinity, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Salinity (ppm)")+
   scale_x_datetime(date_labels = "%b%n%Y",date_breaks = "30 days")+theme_bw() + ggtitle ("Aghanashini")+
   theme(axis.text=element_text(size=14),
         axis.title=element_text(size=16,face="bold"),
@@ -119,7 +119,7 @@ Kali_sal$Salinity[Kali_sal$Date_time < ymd_hms("2023-12-20 17:00:00")] = NA
 Kali_sal$Salinity[Kali_sal$Date_time > ymd_hms("2024-06-15 10:00:00")] = NA
 
 
-ggplot(Kali_sal[Kali_sal$month <= 6,],aes(y = Salinity, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Salinity (ppm)")+
+ggplot(Kali_sal[Kali_sal$month == 6,],aes(y = Salinity, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Salinity (ppm)")+
   scale_x_datetime(date_labels = "%b%n%d",date_breaks = "30 days")+theme_bw() + ggtitle ("Kali")+
   theme(axis.text=element_text(size=14),
         axis.title=element_text(size=16,face="bold"),
