@@ -43,6 +43,9 @@ names(UK_whsed)
 
 yearPrecip = left_join(yearPrecip,UK_whsed %>% select(Basin_name,Area))
 
+names(yearPrecip)
+AnnualAvg = yearPrecip %>% group_by(Basin_name) %>% dplyr::summarise((AnnualAvg = round(mean(Rain_mm),2)))
+
 yearPrecip$RainfallDepth = yearPrecip$Rain_mm/yearPrecip$Area
 ?st_read
 
