@@ -277,21 +277,38 @@ hum_names <- as_labeller(
     "Kali" = paste("Kali: ","AdjR2 =",River_Adjrsq[3],",Intercept = ",River_intercept[3],"Slope = ",River_slope[3],"p.val = ",River_pval[3]),  
     "Shar" = paste("Shar: ","AdjR2 =",River_Adjrsq[4],",Intercept = ",River_intercept[4],"Slope = ",River_slope[4],"p.val = ",River_pval[4]))) 
 
-unique(refl_long$River)
-  
-  
+hum_names <- as_labeller(
+  c("Aghanashini", "Gangavali", "Kali", "Sharavathi"))
+
+
+data_text <- data.frame(label = c(paste("Log (SSC) = ",River_slope[1],"* RED +",River_intercept[1]),
+                                  paste("Log (SSC) = ",River_slope[2],"* RED +",River_intercept[1]),
+                                  paste("Log (SSC) = ",River_slope[3],"* RED +",River_intercept[1]),
+                                  paste("Log (SSC) = ",River_slope[4],"* RED +",River_intercept[1])),
+                        x = c(0.03, 0.04, 0.025, 0.03),
+                        y = c(6, 8, 3, 2),
+                        River)  
+
+
 ggplot(refl_long,aes(y = logssc, x = Reflect))+
     geom_point(aes(fill = River,color = River),size = 2)+
     #stat_summary(fun.data= mean_cl_normal) + 
-    geom_smooth(method='lm') + facet_wrap(.~River, scales = "free",labeller = hum_names)+
+    geom_smooth(method='lm') + 
+  #facet_wrap(.~River, scales = "free",labeller = hum_names)+
+  facet_wrap(.~River, scales = "free", labeller = hum_names)+
     theme(strip.text = element_text(size = 1))+
     ggtitle(" ")+theme_bw()+ xlab("Red Reflectance") +ylab("log(SSC (mg/L))")+
   theme(legend.position="bottom",
         axis.text=element_text(size=18),
         axis.title=element_text(size=20,face="bold"),
-        plot.title = element_text(size = 25, face = "bold"))+
+        plot.title = element_text(size = 25, face = "bold"),
+        strip.text.x = element_text(size = 15))+
   theme(legend.position="bottom", legend.text = element_text(size = 20),  # Adjust size for legend entries
-        legend.title = element_text(size = 22))
+        legend.title = element_text(size = 22))+
+  geom_text(data = data_text,
+            mapping = aes(x = x,
+                          y = y,
+                          label = label))
 
 # ggsave("SSCvsRed_withPvals.jpg", device = "jpg",path = "E:/Shishir/FieldData/Results/",
 #        scale = 3, width = 5, height = 3,
