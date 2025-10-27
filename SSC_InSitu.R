@@ -131,7 +131,7 @@ ssc$Sampling.Date[ssc$Sampling.Date == ymd("2023-07-11") & ssc$River == "Gangava
 
 #####now let us address rows where sample size is more than 4 because at no sampling site, more than 4 replicates were collected###
 #calculate a column which tells how many samples were collected. If there are replicates, then problematic rows can be discarded
-ssc = ssc %>% group_by(Sampling.Date,River) %>% mutate(Samplesize = n())
+ssc = ssc %>% dplyr::group_by(Sampling.Date,River) %>% dplyr::mutate(Samplesize = n())
 
 high = ssc[ssc$Samplesize>4,]
 
@@ -149,7 +149,7 @@ ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 273] = ymd("2023-1
 ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 275] = ymd("2023-10-16")
 ssc$Sampling.Date[ssc$River == "Gangavali" & ssc$Filter.ID == 322] = ymd("2023-10-16")
 
-ssc = ssc %>% group_by(Sampling.Date,River) %>% mutate(Samplesize = n())
+ssc = ssc %>% dplyr::group_by(Sampling.Date,River) %>% dplyr::mutate(Samplesize = n())
 high = ssc[ssc$Samplesize>4,]
 
 
@@ -195,17 +195,24 @@ ssc$River = as.factor(ssc$River)
 
 #ssc_onlyCleandata 
   
-  ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River,method = "auto"),span = 0.4) +
-  xlab(" ")+ylab("log(SSC) ")+ ggtitle("In-situ SSSC")+
-  scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=12,face="bold"))+
-  theme(legend.position="bottom")
+  ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River),size = 1.9)+
+  geom_smooth(aes(group = River,col = River,method = "auto"),span = 0.4,linewidth = 2) +
+  xlab("Date")+ylab("log(SSC (mg/L)) ")+ ggtitle("In-situ SSC")+
+  scale_x_date(date_labels = "%b\n%Y",date_breaks = "30 day")+theme_bw()+
+    theme(axis.text=element_text(size=18),
+          axis.title=element_text(size=20,face="bold"),
+          plot.title = element_text(size = 25, face = "bold"))+
+  theme(legend.position="bottom", legend.text = element_text(size = 20),  # Adjust size for legend entries
+      legend.title = element_text(size = 22))
+  
 
-# ggsave("ssc_onlyCleandata.jpg", ssc_onlyCleandata, device = "jpg",path = "E:/Shishir/FieldData/Results/",
-#       scale = 3, width = 5, height = 3,
-#       dpi = 300, limitsize = TRUE)
+
+ggsave("E:/Shishir/FieldData/Results/ssc_onlyCleandata_v1.jpg",  width = 6, height = 3.5,scale = 3)
+  
+  
+ggsave("ssc_onlyCleandata_v1.jpg", ssc_onlyCleandata, device = "jpg",path = "E:/Shishir/FieldData/Results/",
+       scale = 3, width = 5, height = 3,
+       dpi = 300, limitsize = TRUE)
 
 
 ###### check if turbidity and SSC have a relationship ##### 
@@ -227,8 +234,8 @@ ggplot(ssc,aes(x = Turbidity,y = (SSC..mg.l.)))+geom_point(aes(group = River,col
 ######## Now get ssc values and compute the median SSC for each sampling date #######
 ssc_mean =   ssc %>% select(c("Sampling.Date","ScheduledDates","SSC..mg.l.","SamplingMonth","River")) 
 # calculate mean SSC
-ssc_mean = ssc_mean %>% group_by(Sampling.Date,ScheduledDates,River) %>% mutate(ssc_mean = mean(SSC..mg.l.))
-ssc_mean = ssc_mean %>% select(-SSC..mg.l.) %>% distinct()
+ssc_mean = ssc_mean %>% dplyr::group_by(Sampling.Date,ScheduledDates,River) %>% dplyr::mutate(ssc_mean = mean(SSC..mg.l.))
+ssc_mean = ssc_mean %>% dplyr::select(-SSC..mg.l.) %>% distinct()
 
 ssc_mean$logssc = log(ssc_mean$ssc_mean)
 
@@ -236,3 +243,21 @@ ssc_mean$logssc = log(ssc_mean$ssc_mean)
 levels(ssc_mean$River)[levels(ssc_mean$River) == "Gangavali"] <- "Gang"
 levels(ssc_mean$River)[levels(ssc_mean$River) == "Sharavathi"] <- "Shar"
 
+ssc_mean$season = "wet"
+ssc_mean$season[ssc_mean$SamplingMonth == "Apr" | 
+                ssc_mean$SamplingMonth == "Mar" |
+                ssc_mean$SamplingMonth == "May" |
+                ssc_mean$SamplingMonth == "Jun"] = "Dry" 
+
+ssc_mean$season[ssc_mean$SamplingMonth == "Oct" | 
+                  ssc_mean$SamplingMonth == "Nov" |
+                  ssc_mean$SamplingMonth == "Dec" |
+                  ssc_mean$SamplingMonth == "Jan"] = "Post-monsoon" 
+
+names(ssc_mean)
+
+ssc_mean_season = summarySE(ssc_mean,measurevar = "ssc_mean",groupvars = c("River","season"),na.rm = TRUE)
+ssc_mean_season$ssc_mean = round(ssc_mean_season$ssc_mean,2)
+ssc_mean_season$se = round(ssc_mean_season$se,2)
+names(ssc_mean_season)
+ssc_mean_season = ssc_mean_season %>% select("River","season","N","ssc_mean","se")

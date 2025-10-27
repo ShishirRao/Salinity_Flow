@@ -140,30 +140,30 @@ unique(temp$site[temp$ImgDates == ymd("2023-07-20")])
 unique(pix$site[pix$ImgDates == ymd("1990-08-02")])
 test = (pix[pix$ImgDates == ymd("1990-08-02"),])
 
-pix_red = pix %>% group_by(site,ImgDates) %>% mutate(AvgRed = median(Red)) %>%
-  select(site,ImgDates,River,AvgRed)  %>% distinct() %>% spread(site,AvgRed)
+pix_red = pix %>% dplyr::group_by(site,ImgDates) %>% dplyr::mutate(AvgRed = median(Red)) %>%
+  dplyr::select(site,ImgDates,River,AvgRed)  %>% dplyr::distinct() %>% spread(site,AvgRed)
 
-pix_green = pix %>% group_by(site,ImgDates) %>% mutate(AvgGreen = median(Green)) %>%
-  select(site,ImgDates,River,AvgGreen)  %>% distinct() %>% spread(site,AvgGreen)
+pix_green = pix %>% dplyr::group_by(site,ImgDates) %>% dplyr::mutate(AvgGreen = median(Green)) %>%
+  dplyr::select(site,ImgDates,River,AvgGreen)  %>% dplyr::distinct() %>% spread(site,AvgGreen)
 
-pix_blue = pix %>% group_by(site,ImgDates) %>% mutate(AvgBlue = median(Blue)) %>%
-  select(site,ImgDates,River,AvgBlue)  %>% distinct() %>% spread(site,AvgBlue)
+pix_blue = pix %>% dplyr::group_by(site,ImgDates) %>% dplyr::mutate(AvgBlue = median(Blue)) %>%
+  dplyr::select(site,ImgDates,River,AvgBlue)  %>% dplyr::distinct() %>% spread(site,AvgBlue)
 
-pix_NIR = pix %>% group_by(site,ImgDates) %>% mutate(AvgNIR = median(NIR)) %>%
-  select(site,ImgDates,River,AvgNIR)  %>% distinct() %>% spread(site,AvgNIR)
+pix_NIR = pix %>% dplyr::group_by(site,ImgDates) %>% dplyr::mutate(AvgNIR = median(NIR)) %>%
+  dplyr::select(site,ImgDates,River,AvgNIR)  %>% dplyr::distinct() %>% spread(site,AvgNIR)
 
-pix_Bright = pix %>% group_by(site,ImgDates) %>% mutate(AvgNIR = mean(NIR)) %>%
-  select(site,ImgDates,River,AvgNIR)  %>% distinct() %>% spread(site,AvgNIR)
+pix_Bright = pix %>% dplyr::group_by(site,ImgDates) %>% dplyr::mutate(AvgNIR = mean(NIR)) %>%
+  dplyr::select(site,ImgDates,River,AvgNIR)  %>% dplyr::distinct() %>% spread(site,AvgNIR)
 
 temp2 = pix_Bright[pix_Bright$ImgDates == ymd("1994-06-26"),]
 
 
 # combine the values for each site based on cloud free data availability
-AvgRed = SiteCombine(pix_red, "Yes") %>% rename(AvgRed = Reflect)
-AvgGreen = SiteCombine(pix_green, "Yes") %>% rename(AvgGreen = Reflect)
-AvgBlue = SiteCombine(pix_blue, "Yes") %>% rename(AvgBlue = Reflect)
-AvgNIR = SiteCombine(pix_NIR, "Yes") %>% rename(AvgNIR = Reflect)
-AvgBright = SiteCombine(pix_Bright, "Yes") %>% rename(AvgBright = Reflect)
+AvgRed = SiteCombine(pix_red, "Yes") %>% dplyr::rename(AvgRed = Reflect)
+AvgGreen = SiteCombine(pix_green, "Yes") %>% dplyr::rename(AvgGreen = Reflect)
+AvgBlue = SiteCombine(pix_blue, "Yes") %>% dplyr::rename(AvgBlue = Reflect)
+AvgNIR = SiteCombine(pix_NIR, "Yes") %>% dplyr::rename(AvgNIR = Reflect)
+AvgBright = SiteCombine(pix_Bright, "Yes") %>% dplyr::rename(AvgBright = Reflect)
 
 refl = left_join(AvgRed,AvgGreen)
 refl = left_join(refl, AvgBlue)
@@ -281,14 +281,17 @@ unique(refl_long$River)
   
   
 ggplot(refl_long,aes(y = logssc, x = Reflect))+
-    geom_point(aes(fill = River,color = River))+
+    geom_point(aes(fill = River,color = River),size = 2)+
     #stat_summary(fun.data= mean_cl_normal) + 
     geom_smooth(method='lm') + facet_wrap(.~River, scales = "free",labeller = hum_names)+
     theme(strip.text = element_text(size = 1))+
-    ggtitle("Log(ssc) vs Red Reflectance for 2023")+theme_bw()+ xlab("Red Reflectance") +ylab("Log SSC")+
-    theme(axis.text=element_text(size=12),
-          axis.title=element_text(size=13,face="bold"))+
-  theme(legend.position="bottom",text = element_text(size = 13))
+    ggtitle(" ")+theme_bw()+ xlab("Red Reflectance") +ylab("log(SSC (mg/L))")+
+  theme(legend.position="bottom",
+        axis.text=element_text(size=18),
+        axis.title=element_text(size=20,face="bold"),
+        plot.title = element_text(size = 25, face = "bold"))+
+  theme(legend.position="bottom", legend.text = element_text(size = 20),  # Adjust size for legend entries
+        legend.title = element_text(size = 22))
 
 # ggsave("SSCvsRed_withPvals.jpg", device = "jpg",path = "E:/Shishir/FieldData/Results/",
 #        scale = 3, width = 5, height = 3,

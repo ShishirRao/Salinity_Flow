@@ -153,17 +153,17 @@ ggplot(Shar_fig[Shar_fig$Date_time <= ymd_hms("2023-11-14 17:00:00"),], aes(x = 
   ggtitle("3.1 Sharavathi")+
   theme(strip.background = element_blank(), strip.text = element_blank())
 
-ggplot(Shar_fig[Shar_fig$Date_time <= ymd_hms("2023-11-14 17:00:00") & Shar_fig$month == 7,], aes(x = Date_time, y = value)) + geom_line() + 
+ggplot(Shar_fig[Shar_fig$Date_time <= ymd_hms("2023-11-14 17:00:00") & Shar_fig$month == 4,], aes(x = Date_time, y = value)) + geom_line() + 
   facet_grid(parameter ~ ., scales = "free_y") + theme(legend.position = "none")+
-  scale_x_datetime(date_labels = "%d\n%H",date_breaks = "24 hour")+theme_bw() +
+  scale_x_datetime(date_labels = "%d-%b",date_breaks = "48 hours")+theme_bw() +
   theme(axis.text=element_text(size=18),
         axis.title=element_text(size=20,face="bold"),
         plot.title = element_text(size = 25, face = "bold"))+
-  xlab("Time (hours)") + ylab("Salinity (ppm)                                        Water depth(m)")+
-  ggtitle("4.2 Sharavathi: July, 2023")+
+  xlab("Time") + ylab("Salinity (ppm)                                        Water depth(m)")+
+  ggtitle("4.1 Sharavathi: April, 2023")+
   theme(strip.background = element_blank(), strip.text = element_blank())
 
-ggsave("E:/Shishir/FieldData/Results/Shar_Sal_Depth_v3_July.jpg",  width = 6, height = 3.5,scale = 3)
+ggsave("E:/Shishir/FieldData/Results/Shar_Sal_Depth_v3_April.jpg",  width = 6, height = 3.5,scale = 3)
 
 ### Kali ###
 
