@@ -215,7 +215,7 @@ by <- join_by(River,ImgDates == Sampling.Date)
 refl_long = left_join(refl_long,ssc_mean,by)
 refl_long = refl_long[complete.cases(refl_long),]
 names(refl_long)
-refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Band,Reflect,ssc_mean,logssc) %>%
+refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Band,Reflect,ssc_mean,logssc,Season) %>%
             filter(Band == "AvgRed")
 
 
@@ -278,20 +278,23 @@ hum_names <- as_labeller(
     "Shar" = paste("Shar: ","AdjR2 =",River_Adjrsq[4],",Intercept = ",River_intercept[4],"Slope = ",River_slope[4],"p.val = ",River_pval[4]))) 
 
 hum_names <- as_labeller(
-  c("Aghanashini", "Gangavali", "Kali", "Sharavathi"))
+  c("Agha" = "Aghanashini",
+    "Gang" = "Gangavali",
+    "Kali" = "Kali", 
+    "Shar" = "Sharavathi"))
 
 
-data_text <- data.frame(label = c(paste("Log (SSC) = ",River_slope[1],"* RED +",River_intercept[1]),
-                                  paste("Log (SSC) = ",River_slope[2],"* RED +",River_intercept[1]),
-                                  paste("Log (SSC) = ",River_slope[3],"* RED +",River_intercept[1]),
-                                  paste("Log (SSC) = ",River_slope[4],"* RED +",River_intercept[1])),
-                        x = c(0.03, 0.04, 0.025, 0.03),
-                        y = c(6, 8, 3, 2),
+data_text <- data.frame(label = c(paste("Log (SSC) = ",River_slope[1],"* RED +",River_intercept[1], "\n AdjR2 =",River_Adjrsq[1],",","p.val = ",River_pval[1]),
+                                  paste("Log (SSC) = ",River_slope[2],"* RED +",River_intercept[2], "\n AdjR2 =",River_Adjrsq[2],",","p.val = ",River_pval[2]),
+                                  paste("Log (SSC) = ",River_slope[3],"* RED +",River_intercept[3], "\n AdjR2 =",River_Adjrsq[3],",","p.val = ",River_pval[3]),
+                                  paste("Log (SSC) = ",River_slope[4],"* RED +",River_intercept[4],"\n AdjR2 =",River_Adjrsq[4],",","p.val = ",River_pval[4])),
+                        x = c(0.06, 0.067, 0.058, 0.05),
+                        y = c(5.8, 8.2, 2.66, 1.88),
                         River)  
 
 
 ggplot(refl_long,aes(y = logssc, x = Reflect))+
-    geom_point(aes(fill = River,color = River),size = 2)+
+    geom_point(aes(color=Season),size = 3)+
     #stat_summary(fun.data= mean_cl_normal) + 
     geom_smooth(method='lm') + 
   #facet_wrap(.~River, scales = "free",labeller = hum_names)+
@@ -302,10 +305,10 @@ ggplot(refl_long,aes(y = logssc, x = Reflect))+
         axis.text=element_text(size=18),
         axis.title=element_text(size=20,face="bold"),
         plot.title = element_text(size = 25, face = "bold"),
-        strip.text.x = element_text(size = 15))+
+        strip.text.x = element_text(size = 20))+
   theme(legend.position="bottom", legend.text = element_text(size = 20),  # Adjust size for legend entries
         legend.title = element_text(size = 22))+
-  geom_text(data = data_text,
+  geom_text(data = data_text, size = 6,
             mapping = aes(x = x,
                           y = y,
                           label = label))
@@ -313,6 +316,9 @@ ggplot(refl_long,aes(y = logssc, x = Reflect))+
 # ggsave("SSCvsRed_withPvals.jpg", device = "jpg",path = "E:/Shishir/FieldData/Results/",
 #        scale = 3, width = 5, height = 3,
 #         dpi = 300, limitsize = TRUE)
+
+ggsave("E:/Shishir/FieldData/Results/SSCvsRed_withPvals_v1.jpg",  width = 6, height = 3.5,scale = 3)
+
 
 
 refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Band,Reflect,ssc_mean,logssc) %>%

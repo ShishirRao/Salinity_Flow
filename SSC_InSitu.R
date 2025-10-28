@@ -243,21 +243,21 @@ ssc_mean$logssc = log(ssc_mean$ssc_mean)
 levels(ssc_mean$River)[levels(ssc_mean$River) == "Gangavali"] <- "Gang"
 levels(ssc_mean$River)[levels(ssc_mean$River) == "Sharavathi"] <- "Shar"
 
-ssc_mean$season = "wet"
-ssc_mean$season[ssc_mean$SamplingMonth == "Apr" | 
+ssc_mean$Season = "wet"
+ssc_mean$Season[ssc_mean$SamplingMonth == "Apr" | 
                 ssc_mean$SamplingMonth == "Mar" |
                 ssc_mean$SamplingMonth == "May" |
                 ssc_mean$SamplingMonth == "Jun"] = "Dry" 
 
-ssc_mean$season[ssc_mean$SamplingMonth == "Oct" | 
+ssc_mean$Season[ssc_mean$SamplingMonth == "Oct" | 
                   ssc_mean$SamplingMonth == "Nov" |
                   ssc_mean$SamplingMonth == "Dec" |
                   ssc_mean$SamplingMonth == "Jan"] = "Post-monsoon" 
 
 names(ssc_mean)
 
-ssc_mean_season = summarySE(ssc_mean,measurevar = "ssc_mean",groupvars = c("River","season"),na.rm = TRUE)
-ssc_mean_season$ssc_mean = round(ssc_mean_season$ssc_mean,2)
-ssc_mean_season$se = round(ssc_mean_season$se,2)
-names(ssc_mean_season)
-ssc_mean_season = ssc_mean_season %>% select("River","season","N","ssc_mean","se")
+ssc_mean_Season = summarySE(ssc_mean,measurevar = "ssc_mean",groupvars = c("River","Season"),na.rm = TRUE)
+ssc_mean_Season$ssc_mean = round(ssc_mean_Season$ssc_mean,2)
+ssc_mean_Season$se = round(ssc_mean_Season$se,2)
+names(ssc_mean_Season)
+ssc_mean_Season = ssc_mean_Season %>% select("River","Season","N","ssc_mean","se")
