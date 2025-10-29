@@ -261,3 +261,6 @@ ssc_mean_Season$ssc_mean = round(ssc_mean_Season$ssc_mean,2)
 ssc_mean_Season$se = round(ssc_mean_Season$se,2)
 names(ssc_mean_Season)
 ssc_mean_Season = ssc_mean_Season %>% select("River","Season","N","ssc_mean","se")
+
+ssc_mean_samplesize = summarySE(ssc_mean,measurevar = "ssc_mean",groupvars = c("River"),na.rm = TRUE)
+names(ssc_mean_Season)[3] = "In_situ_sample_size"

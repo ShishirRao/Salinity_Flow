@@ -218,6 +218,13 @@ names(refl_long)
 refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Band,Reflect,ssc_mean,logssc,Season) %>%
             filter(Band == "AvgRed")
 
+refl_long_summary = summarySE(refl_long,measurevar = "ssc_mean",groupvars = c("River","Season"),na.rm = TRUE)
+names(refl_long_summary)[3] = "Image_matched_samples"
+
+
+Sample_size_summary = left_join(ssc_mean_Season %>% select(River, Season,In_situ_sample_size ),
+                                refl_long_summary %>% select(River, Season, Image_matched_samples))
+Sample_size_summary$percent = Sample_size_summary$Image_matched_samples * 100 / Sample_size_summary$In_situ_sample_size 
 
 # plot log(ssc)~Reflect for each band combination
 # SSCvsRedv2 =
