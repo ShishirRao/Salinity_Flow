@@ -177,13 +177,13 @@ refl = left_join(refl, AvgBlue)
 refl = left_join(refl, AvgNIR)
 refl = left_join(refl, AvgBright)
 refl$AvgRedbyGreen = refl$AvgRed / refl$AvgGreen
-refl$AvgRedbyGreen = refl$AvgRed / refl$AvgBlue
+refl$AvgRedbyBlue = refl$AvgRed / refl$AvgBlue
 refl$AvgRedbyNIR = refl$AvgRed / refl$AvgNIR
 
 
 #write.csv(refl,"E:/Shishir/FieldData/Results/Refl_v6_polygonShar.csv")
 
-refl_long = gather(refl,key = "Band",value = "Reflect",AvgRed, AvgGreen, AvgBlue,AvgNIR,AvgRedbyNIR,AvgBright)
+refl_long = gather(refl,key = "Band",value = "Reflect",AvgRed, AvgGreen, AvgBlue,AvgNIR,AvgRedbyGreen,AvgRedbyBlue,AvgRedbyNIR,AvgBright)
 names(refl_long)
 unique(refl_long$ImgDates)
 
@@ -200,6 +200,14 @@ BrightImages = refl_long %>% filter(Band == "AvgBright" & Reflect >= 0.5)
 
 ggplot(refl_long %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River,method = "auto"),span = .4) + ggtitle("Red Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance from L8 and L9")+
+  scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
+  theme(axis.text=element_text(size=13),
+        axis.title=element_text(size=14,face="bold"))+
+  theme(legend.position="bottom")
+
+ggplot(refl_long %>% filter(Band == "AvgGreen") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
+  geom_smooth(aes(group = River,col = River,method = "auto"),span = .4) + ggtitle("Green Reflectance")+ xlab("Imagery date") +
+  ylab("Green Reflectance from L8 and L9")+
   scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))+
@@ -226,6 +234,8 @@ refl_long = refl_long[complete.cases(refl_long),]
 names(refl_long)
 refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Band,Reflect,ssc_mean,logssc,Season,Source) %>%
             filter(Band == "AvgRed")
+
+unique(refl_long$Band)
 
 refl_long_summary = summarySE(refl_long,measurevar = "ssc_mean",groupvars = c("River","Season"),na.rm = TRUE)
 names(refl_long_summary)[3] = "Image_matched_samples"
@@ -335,7 +345,7 @@ ggplot(refl_long,aes(y = logssc, x = Reflect))+
 #        scale = 3, width = 5, height = 3,
 #         dpi = 300, limitsize = TRUE)
 
-ggsave("E:/Shishir/FieldData/Results/SSCvsRed_withPvals_v1.jpg",  width = 6, height = 3.5,scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/SSCvsRedbyNIR_withPvals_v1.jpg",  width = 6, height = 3.5,scale = 3)
 
 
 
