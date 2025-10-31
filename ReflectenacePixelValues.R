@@ -22,10 +22,16 @@ setwd("E:/Shishir/FieldData/Analysis/Reflectance/")
 SiteCombine <- function(pix_wide,Combine) {
   
   pix_wide$Reflect = as.numeric(0)
+  pix_wide$Source = "Actual"
   
   if(Combine == "Yes"){
       
   
+    pix_wide$Source[which(is.na(pix_wide$Agha_water_dry) & pix_wide$River == "Agha")] = "Downstream"
+    pix_wide$Source[which(is.na(pix_wide$Gang_water_dry) & pix_wide$River == "Gang")] = "Downstream"
+    pix_wide$Source[which(is.na(pix_wide$Kali_water_dry) & pix_wide$River == "Kali")] = "Downstream"
+    pix_wide$Source[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")] = "Downstream"
+    
     # ## Agha
     pix_wide$Agha_water_dry[which(is.na(pix_wide$Agha_water_dry) & pix_wide$River == "Agha")] =
       pix_wide$Agha_water_wet1[which(is.na(pix_wide$Agha_water_dry) & pix_wide$River == "Agha")]
@@ -64,6 +70,7 @@ SiteCombine <- function(pix_wide,Combine) {
       pix_wide$Shar_water_wet1[which(is.na(pix_wide$Shar_water_dry) & pix_wide$River == "Shar")]
   
     pix_wide$Reflect[pix_wide$River == "Shar"] = pix_wide$Shar_water_dry[pix_wide$River == "Shar"]
+    
   
   }else{
     pix_wide$Reflect[pix_wide$River == "Agha"] = pix_wide$Agha_water_dry[pix_wide$River == "Agha"]
@@ -169,6 +176,8 @@ refl = left_join(AvgRed,AvgGreen)
 refl = left_join(refl, AvgBlue)
 refl = left_join(refl, AvgNIR)
 refl = left_join(refl, AvgBright)
+refl$AvgRedbyGreen = refl$AvgRed / refl$AvgGreen
+refl$AvgRedbyGreen = refl$AvgRed / refl$AvgBlue
 refl$AvgRedbyNIR = refl$AvgRed / refl$AvgNIR
 
 
@@ -215,11 +224,13 @@ by <- join_by(River,ImgDates == Sampling.Date)
 refl_long = left_join(refl_long,ssc_mean,by)
 refl_long = refl_long[complete.cases(refl_long),]
 names(refl_long)
-refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Band,Reflect,ssc_mean,logssc,Season) %>%
+refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Band,Reflect,ssc_mean,logssc,Season,Source) %>%
             filter(Band == "AvgRed")
 
 refl_long_summary = summarySE(refl_long,measurevar = "ssc_mean",groupvars = c("River","Season"),na.rm = TRUE)
 names(refl_long_summary)[3] = "Image_matched_samples"
+
+refl_long_stat = refl_long %>% dplyr::group_by(River,Source) %>% dplyr::mutate(Number_of_images = n()) %>% select(River,Source,Number_of_images) %>% distinct()
 
 
 Sample_size_summary = left_join(ssc_mean_Season %>% select(River, Season,In_situ_sample_size ),
