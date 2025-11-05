@@ -111,7 +111,23 @@ ggplot(Agha_depth[Agha_depth$month == 5 ,],aes(y = Ch3_Value, x =Date_time ))+ge
 mean(Agha_depth$Ch3_Value[Agha_depth$month == 5],na.rm = TRUE) -
   mean(Agha_depth$AirPressure_ERA5_hpa[Agha_depth$month == 5],na.rm = TRUE)
 
+test = Agha_depth[complete.cases(Agha_depth),]
+unique(test$month)
+
+cor(test$Ch3_Value, test$AirPressure_ERA5_hpa, method = "pearson")
+cor.test(test$Ch3_Value, test$AirPressure_ERA5_hpa, method = "pearson")
+
+model = lm(Agha_depth$Ch3_Value~Agha_depth$AirPressure_ERA5_hpa)
+summary(model)
+
+ggplot(Agha_depth ,aes(y = AirPressure_ERA5_hpa, x = Ch3_Value))+
+  geom_point()
+
+
+
 Agha_depth$WaterPressure_hPa = Agha_depth$TotalPressure_hPa - Agha_depth$AirPressure_ERA5_hpa
+
+
 
 ## h=ρgP  h = depth (m), 
 # P = water pressure in pascals (Pa) — not total pressure
@@ -246,6 +262,12 @@ Shar_depth$month == 5 | Shar_depth$month == 6
 ggplot(Shar_depth[Shar_depth$month == 6,],aes(y = Ch3_Value, x =Date_time ))+geom_point()+
   geom_smooth(span = .5)+geom_smooth(aes(x=Date_time,y=AirPressure_ERA5_hpa),span = 0.5)+
   scale_x_datetime(date_labels = "%b-%d",date_breaks = "30 day")+theme_bw()
+
+test = Shar_depth[complete.cases(Shar_depth),]
+unique(test$month)
+
+cor(test$Ch3_Value, test$AirPressure_ERA5_hpa, method = "pearson")
+cor.test(test$Ch3_Value, test$AirPressure_ERA5_hpa, method = "pearson")
 
 mean(Shar_depth$Ch3_Value[Shar_depth$month == 5],na.rm = TRUE) -
 mean(Shar_depth$AirPressure_ERA5_hpa[Shar_depth$month == 5],na.rm = TRUE)

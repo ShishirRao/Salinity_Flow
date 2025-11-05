@@ -419,12 +419,18 @@ ggplot(random_effects_df, aes(x = group, y = intercept)) +
 refl_long_without_Shar$predicted_values <- predict(fit_ran_incpt_without_Shar, newdata = refl_long_without_Shar)
 
 ggplot(refl_long_without_Shar, aes(x = Reflect, y = logssc, color = River)) +
-  geom_point(alpha = 0.6) +
-  geom_line(aes(y = predicted_values)) +
-  labs(title = "Random Intercept Model ",
-       x = "Red Reflectance", y = "log (SSC)") +
-  theme_bw() +  theme(legend.position="bottom")
+  geom_point(alpha = 1.8) +
+  geom_line(aes(y = predicted_values),linewidth = 1.5) +
+  labs(x = "Red Reflectance", y = "log(SSC (mg/L))") +
+  theme_bw() +  theme(legend.position="bottom")+
+  theme(legend.position="bottom",
+        axis.text=element_text(size=18),
+        axis.title=element_text(size=20,face="bold"),
+        plot.title = element_text(size = 25, face = "bold"))+
+  theme(legend.position="bottom", legend.text = element_text(size = 20),  # Adjust size for legend entries
+        legend.title = element_text(size = 22))
 
+ggsave("E:/Shishir/FieldData/Results/RandomIntercept_v1.jpg",  width = 3, height = 2,scale = 3)
 
 # Using coef() with summary()
 fixed_effects <- coef(summary(fit_ran_incpt_without_Shar))[, "Estimate"]
@@ -454,7 +460,7 @@ pix_back = pix_back %>% filter(Red <= 0.15 & Red >= 0.009)
 #### get some stats on water and clouds to remove cloud pixels ###
 areas = read.csv("polygon_areas.csv",header=T)
 head(areas)
-areas = areas %>% select(area,name,Type) %>% rename(area = area,site = name)
+areas = areas %>% select(area,name,Type) %>% dplyr::rename(area = area,site = name)
 
 
 cloudStat = read.csv("CloudStat_1989_2023.csv",header=T)
@@ -464,7 +470,7 @@ unique(cloudStat$site)
 
 waterStat = read.csv("WaterStats_1989_2023.csv",header=T)
 waterStat$date = ymd(stri_sub(waterStat$date,from = 1,to = 10))
-waterStat = waterStat %>% rename(site=name,ImgDates = date) 
+waterStat = waterStat %>% dplyr::rename(site=name,ImgDates = date) 
 unique(waterStat$site)
 
 pix_back = left_join(pix_back,areas)
@@ -510,9 +516,12 @@ unique(pix_back$Remove)
 pix_back$Remove = replace_na(pix_back$Remove,"Keep")
 pix_back = pix_back %>% filter(Remove != "Yes")
 
+names(pix_back)
+length(unique(pix_back$ImgDates))
+
 # Calcuate site-wise median values and select the red band
-pix_back_red = pix_back %>% group_by(site,ImgDates) %>% mutate(AvgRed = median(Red)) %>%
-  select(site,ImgDates,River,AvgRed)  %>% distinct() %>% spread(site,AvgRed)
+pix_back_red = pix_back %>% dplyr::group_by(site,ImgDates) %>% dplyr::mutate(AvgRed = median(Red)) %>%
+  dplyr::select(site,ImgDates,River,AvgRed)  %>% distinct() %>% spread(site,AvgRed)
 
 
 # plotting all the individual sites. Only Gang_water_wet2 seems to deviate which is expected because it is in the estuary!
@@ -553,7 +562,7 @@ ggplot(refl_long_back_GangEstuary %>% filter(Band == "AvgRed") ,aes(y = Reflect,
         axis.title=element_text(size=14,face="bold"))
 
 ## All sites combined including Gang estuary ##
-pix_back_red$Gang_water_wet2 = NA
+#pix_back_red$Gang_water_wet2 = NA
 AvgRed = SiteCombine(pix_back_red,"Yes") %>% rename(AvgRed = Reflect)
 refl_long_back = gather(AvgRed,key = "Band",value = "Reflect",AvgRed)
 names(refl_long_back_GangEstuary)
@@ -563,6 +572,10 @@ ggplot(refl_long_back %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDate
   scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))
+
+#Let us use data from the sampling site only. This was we can justify the use of alternative sites for calibration only. If we use all the sites for 
+#hindcasting, then we will have to leave out Gangavali estuary where the reflectance is consistently higher because it is much further downstream. 
+
 
 
 ## Seperate the seasons
@@ -602,31 +615,20 @@ ggplot(refl_long_back %>% filter(season == "wet") ,aes(y = Reflect, x = ImgDates
 
 ##### Checking for overlapping images between Landsat 5Theoph##### Checking for overlapping images between Landsat 5, 7, 8 and 9 #####
 #Create a date series for 2023 spaced 8 days apart
-LandsatDates = data.frame("Date_interval_start" = seq(ymd("1989-01-01"),ymd("2023-12-27"), by = "8 days"))
 
-#overlap = read.csv("PolygonProperties_v15_1989_2023.csv",header=T)
-overlap = read.csv("PolygonProperties_v15_1989_2023.csv")
-overlap$Date_interval_start = ymd(stri_sub(overlap$Date_interval_start,from = 1,to = 10))
+pix_back$year = year(pix_back$ImgDates)
+pix_back$month = month(pix_back$ImgDates)
+pix_back$season = ifelse(pix_back$month >= 6 & pix_back$month <= 11,"wet","dry")
 
-overlap = left_join(LandsatDates,overlap)
-overlap = overlap[complete.cases(overlap),]
-overlap$year = year(overlap$Date_interval_start)
-overlap$month = month(overlap$Date_interval_start)
-overlap$season = ifelse(overlap$month >= 6 & overlap$month <= 11,"wet","dry")
+SeasonalImages = pix_back %>% select(ImgDates,year,season) %>%  distinct() %>% group_by(year,season) %>% mutate(Number_of_images = n()) %>%
+  select(year,season,Number_of_images) %>% distinct()
+  
 
-ImageAvailability = overlap %>% group_by(year) %>% summarize(sum(Number_of_images,na.rm = TRUE))
-names(ImageAvailability) = c("Year","No_of_Images")
 
-SeasonalImages = overlap %>% group_by(year,season) %>% summarize(sum(Number_of_images,na.rm = TRUE))
-names(SeasonalImages) = c("Year","Season","No_of_Images_season")
-
-#SeasonalImages = spread(SeasonalImages, key = Season, value = No_of_Images_season, fill = NA, convert = FALSE, drop = TRUE)
-#SeasonalImages$Total = SeasonalImages$dry + SeasonalImages$wet
-
-ggplot(ImageAvailability, aes(x=Year,y = No_of_Images )) + geom_bar(stat = "identity") +
+ggplot(SeasonalImages, aes(x=year,y = Number_of_images )) + geom_bar(stat = "identity") +
   xlab("Year") + ylab("Number of Landsat Images") + theme_bw()
 
-ggplot(data = SeasonalImages, aes(x = Year, y = No_of_Images_season, fill = Season)) +
+ggplot(data = SeasonalImages, aes(x = year, y = Number_of_images, fill = season)) +
   geom_bar(stat = "identity", position = "stack") + xlab("Year") + ylab("No of Landsat Images")+
   theme_bw() + theme(legend.position="bottom") +   theme(axis.text=element_text(size=12),
                                                   axis.title=element_text(size=12,face="bold"))
