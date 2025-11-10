@@ -207,12 +207,12 @@ ssc$River = as.factor(ssc$River)
   
 
 
-ggsave("E:/Shishir/FieldData/Results/ssc_onlyCleandata_v1.jpg",  width = 6, height = 3.5,scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/ssc_onlyCleandata_v1.jpg",  width = 6, height = 3.5,scale = 3)
   
   
-ggsave("ssc_onlyCleandata_v1.jpg", ssc_onlyCleandata, device = "jpg",path = "E:/Shishir/FieldData/Results/",
-       scale = 3, width = 5, height = 3,
-       dpi = 300, limitsize = TRUE)
+#ggsave("ssc_onlyCleandata_v1.jpg", ssc_onlyCleandata, device = "jpg",path = "E:/Shishir/FieldData/Results/",
+#       scale = 3, width = 5, height = 3,
+#       dpi = 300, limitsize = TRUE)
 
 
 ###### check if turbidity and SSC have a relationship ##### 

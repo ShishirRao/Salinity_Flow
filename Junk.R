@@ -486,8 +486,6 @@ ssc_mean_season = ssc_mean_season %>% select("River","Season","N","ssc_mean","se
 
 
 
-x = c(0.06, 0.067, 0.058, 0.05),
-y = c(5.8, 8.2, 2.66, 1.88),
 
 
 overlap = read.csv("PolygonProperties_v15_1989_2023.csv")
@@ -516,7 +514,7 @@ ggplot(data = SeasonalImages, aes(x = Year, y = No_of_Images_season, fill = Seas
   theme_bw() + theme(legend.position="bottom") +   theme(axis.text=element_text(size=12),
                                                          axis.title=element_text(size=12,face="bold"))
 
-LandsatDates = data.frame("ImgDates" = seq(ymd("1989-01-01"),ymd("2023-12-27"), by = "1 days"))
+LandsatDates = data.frame("Date_interval_start" = seq(ymd("1989-01-01"),ymd("2023-12-27"), by = "1 days"))
 names(LandsatDates)
 head(LandsatDates)
 names(pix_back)

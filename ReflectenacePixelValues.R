@@ -430,7 +430,7 @@ ggplot(refl_long_without_Shar, aes(x = Reflect, y = logssc, color = River)) +
   theme(legend.position="bottom", legend.text = element_text(size = 20),  # Adjust size for legend entries
         legend.title = element_text(size = 22))
 
-ggsave("E:/Shishir/FieldData/Results/RandomIntercept_v1.jpg",  width = 3, height = 2,scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/RandomIntercept_v1.jpg",  width = 3, height = 2,scale = 3)
 
 # Using coef() with summary()
 fixed_effects <- coef(summary(fit_ran_incpt_without_Shar))[, "Estimate"]
@@ -465,7 +465,7 @@ areas = areas %>% select(area,name,Type) %>% dplyr::rename(area = area,site = na
 
 cloudStat = read.csv("CloudStat_1989_2023.csv",header=T)
 cloudStat$date = ymd(stri_sub(cloudStat$date,from = 1,to = 10))
-cloudStat = cloudStat %>% rename(site=name,ImgDates = date,Cloud = cloud_mask)
+cloudStat = cloudStat %>% dplyr::rename(site=name,ImgDates = date,Cloud = cloud_mask)
 unique(cloudStat$site)
 
 waterStat = read.csv("WaterStats_1989_2023.csv",header=T)
@@ -523,25 +523,52 @@ length(unique(pix_back$ImgDates))
 pix_back_red = pix_back %>% dplyr::group_by(site,ImgDates) %>% dplyr::mutate(AvgRed = median(Red)) %>%
   dplyr::select(site,ImgDates,River,AvgRed)  %>% distinct() %>% spread(site,AvgRed)
 
+hum_names <- as_labeller(
+  c("Agha" = "Aghanashini",
+    "Gang" = "Gangavali",
+    "Kali" = "Kali", 
+    "Shar" = "Sharavathi"))
 
 # plotting all the individual sites. Only Gang_water_wet2 seems to deviate which is expected because it is in the estuary!
 #allSites = gather(pix_back_red %>% select(-Gang_water_wet2)  ,key = "Site",value = "Reflect",-c(ImgDates,River))
 allSites = gather(pix_back_red, key = "Site",value = "Reflect",-c(ImgDates,River))
-ggplot(allSites,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = Site,col = Site))+
-  geom_smooth(aes(group = Site,col = Site),span = .5) + ggtitle("Red Reflectance from 1988 - 2023")+ xlab("Imagery date") + ylab("Red Reflectance")+
-  scale_x_date(date_labels = "%y",date_breaks = "2000 day")+theme_bw()+ facet_grid(.~River) +
-  theme(axis.text=element_text(size=13),
-        axis.title=element_text(size=14,face="bold"))+
-  theme(legend.position="bottom")
 
+unique(allSites$Site)
+
+ggplot(allSites,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = Site,col = Site))+
+  geom_smooth(aes(group = Site,col = Site),span = .9) + ggtitle("Red Reflectance from 1989 - 2023")+ xlab("Year") + ylab("Red Reflectance")+
+  scale_x_date(date_labels = "%Y",date_breaks = "3000 day")+theme_bw()+ facet_grid(.~River, labeller = hum_names) +
+  theme(legend.position="bottom",
+        axis.text=element_text(size=18),
+        axis.title=element_text(size=20,face="bold"),
+        plot.title = element_text(size = 25, face = "bold"),
+        strip.text.x = element_text(size = 20))+
+  theme(legend.position="bottom", legend.text = element_text(size = 16),  # Adjust size for legend entries
+        legend.title = element_text(size = 22))+
+  scale_color_discrete(labels = c("Agha_water_dry" = "Aghanashini - SS", 
+                                  "Agha_water_wet1" = "Aghanashini - DS1", 
+                                  "Agha_water_wet2" = "Aghanashini - DS2", 
+                                  "Gang_water_dry" = "Gangavali - SS",
+                                  "Gang_water_wet1" = "Gangavali - DS1",
+                                  "Gang_water_wet2" = "Gangavali - DS2",
+                                  "Kali_water_dry" = "Kali - SS",
+                                  "Kali_water_wet1" = "Kali - DS1",
+                                  "Shar_water_dry" = "Sharavathi - SS", 
+                                  "Shar_water_dry1" = "Sharavathi - DS1", 
+                                  "Shar_water_dry2" = "Sharavathi - DS2",
+                                  "Shar_water_dry3" = "Sharavathi - DS3", 
+                                  "Shar_water_wet1" = "Sharavathi - DS4")) 
+
+
+#ggsave("E:/Shishir/FieldData/Results/Hindcast_sitewise_v1.jpg",  width = 5, height = 3, scale = 3)
 
 # First plot only the sampling site. Dont combine the sites
 AvgRed_SamplingSite = SiteCombine(pix_back_red,"No") %>% rename(AvgRed = Reflect)
 names(AvgRed_SamplingSite)
-refl_long_back_SamplingSite = gather(AvgRed_SamplingSite,key = "Band",value = "Reflect",AvgRed)
+refl_long_back= gather(AvgRed_SamplingSite,key = "Band",value = "Reflect",AvgRed)
 
 # sampling sites only
-ggplot(refl_long_back_SamplingSite  ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
+ggplot(refl_long_back ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Red Reflectance from 1988 - 2023 from sampling site only")+ xlab("Imagery date") + ylab("Red Reflectance")+
   scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
@@ -564,10 +591,10 @@ ggplot(refl_long_back_GangEstuary %>% filter(Band == "AvgRed") ,aes(y = Reflect,
 ## All sites combined including Gang estuary ##
 #pix_back_red$Gang_water_wet2 = NA
 AvgRed = SiteCombine(pix_back_red,"Yes") %>% rename(AvgRed = Reflect)
-refl_long_back = gather(AvgRed,key = "Band",value = "Reflect",AvgRed)
-names(refl_long_back_GangEstuary)
+refl_long_back_allSites = gather(AvgRed,key = "Band",value = "Reflect",AvgRed)
+names(refl_long_back_allSites)
 
-ggplot(refl_long_back %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
+ggplot(refl_long_back_allSites %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Red Reflectance from 1988 - 2023 from all sites")+ xlab("Imagery date") + ylab("Red Reflectance")+
   scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
@@ -584,7 +611,7 @@ refl_long_back$month = month(refl_long_back$ImgDates)
 refl_long_back$season = ifelse(refl_long_back$month >= 6 & refl_long_back$month <= 11,"wet","dry")
 
 ggplot(refl_long_back %>% filter(season == "dry") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Red Reflectance from 1988 - 2023")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Red Reflectance from 1988 - 2023: dry season")+ xlab("Imagery date") + ylab("Red Reflectance")+
   scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))
@@ -617,23 +644,48 @@ ggplot(refl_long_back %>% filter(season == "wet") ,aes(y = Reflect, x = ImgDates
 #Create a date series for 2023 spaced 8 days apart
 
 pix_back$year = year(pix_back$ImgDates)
-pix_back$month = month(pix_back$ImgDates)
-pix_back$season = ifelse(pix_back$month >= 6 & pix_back$month <= 11,"wet","dry")
+pix_back$month = lubridate::month(pix_back$ImgDates,label = TRUE,abbr = TRUE)
+unique(pix_back$month)
+
+## July, Aug, Sep, Oct - wet
+## Nov, Dec, Jan, Feb - Post monsoon
+## Mar, Apr, May, June - dry
+
+pix_back$season = "wet"
+pix_back$season[pix_back$month == "Apr" | 
+                  pix_back$month == "Mar" |
+                  pix_back$month == "May" |
+                  pix_back$month == "Jun"] = "Dry" 
+
+pix_back$season[pix_back$month == "Feb" | 
+                  pix_back$month == "Nov" |
+                  pix_back$month == "Dec" |
+                  pix_back$month == "Jan"] = "Post-monsoon" 
+
+
+ImageAvailability = pix_back %>% select(ImgDates,year) %>%  distinct() %>% group_by(year) %>% mutate(Number_of_images = n()) %>%
+  select(year, Number_of_images) %>% distinct()
+
+mean(ImageAvailability$Number_of_images[ImageAvailability$year <=2012])
+mean(ImageAvailability$Number_of_images[ImageAvailability$year > 2012])
 
 SeasonalImages = pix_back %>% select(ImgDates,year,season) %>%  distinct() %>% group_by(year,season) %>% mutate(Number_of_images = n()) %>%
   select(year,season,Number_of_images) %>% distinct()
+
+
   
 
 
-ggplot(SeasonalImages, aes(x=year,y = Number_of_images )) + geom_bar(stat = "identity") +
-  xlab("Year") + ylab("Number of Landsat Images") + theme_bw()
-
 ggplot(data = SeasonalImages, aes(x = year, y = Number_of_images, fill = season)) +
-  geom_bar(stat = "identity", position = "stack") + xlab("Year") + ylab("No of Landsat Images")+
-  theme_bw() + theme(legend.position="bottom") +   theme(axis.text=element_text(size=12),
-                                                  axis.title=element_text(size=12,face="bold"))
+  geom_bar(stat = "identity", position = "stack") + xlab("Year") + ylab("No. of Landsat Images")+ theme_bw()+
+  theme(legend.position="bottom",
+        axis.text=element_text(size=18),
+        axis.title=element_text(size=20,face="bold"),
+        plot.title = element_text(size = 25, face = "bold"))+
+  theme(legend.position="bottom", legend.text = element_text(size = 20),  # Adjust size for legend entries
+        legend.title = element_text(size = 22))
 
-
+#ggsave("E:/Shishir/FieldData/Results/LandsatImageAvailability_v1.jpg",  width = 3, height = 2,scale = 3)
 
 ### PerRiverImage availability after corrections. ###
 AvgRed$year = year(AvgRed$ImgDates)
