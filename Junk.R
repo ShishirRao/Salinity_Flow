@@ -520,3 +520,77 @@ head(LandsatDates)
 names(pix_back)
 class(pix_back$ImgDates)
 class(LandsatDates$ImgDates)
+
+
+#Remove the Gang estuary site because its reflectance is much consistenly higher than the sampling site / dry sites
+pix_back_GangEstuary = pix_back_red
+pix_back_GangEstuary$Gang_water_wet2 = NA
+
+AvgRed_GangEstuary = SiteCombine(pix_back_GangEstuary,"Yes") %>% rename(AvgRed = Reflect)
+refl_long_back_GangEstuary = gather(AvgRed_GangEstuary,key = "Band",value = "Reflect",AvgRed)
+names(refl_long_back_GangEstuary)
+
+ggplot(refl_long_back_GangEstuary %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
+  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Red Reflectance from 1988 - 2023 from all sites except Gangavali estuary")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
+  theme(axis.text=element_text(size=13),
+        axis.title=element_text(size=14,face="bold"))
+
+## All sites combined including Gang estuary ##
+#pix_back_red$Gang_water_wet2 = NA
+AvgRed = SiteCombine(pix_back_red,"Yes") %>% rename(AvgRed = Reflect)
+refl_long_back_allSites = gather(AvgRed,key = "Band",value = "Reflect",AvgRed)
+names(refl_long_back_allSites)
+
+ggplot(refl_long_back_allSites %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
+  geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Red Reflectance from 1988 - 2023 from all sites")+ xlab("Imagery date") + ylab("Red Reflectance")+
+  scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
+  theme(axis.text=element_text(size=13),
+        axis.title=element_text(size=14,face="bold"))
+
+
+
+data(mtcars)
+# Compare mpg between automatic and manual cars
+mtcars$am <- factor(mtcars$am, labels = c("Automatic", "Manual"))
+
+p <- ggplot(mtcars, aes(x = am, y = mpg, fill = am)) +
+  geom_boxplot(alpha = 0.7) +
+  theme_minimal() +
+  labs(x = "Transmission Type", y = "Miles per Gallon (mpg)",
+       title = "Comparison of MPG by Transmission Type")
+p
+
+library(ggpubr)
+
+p + stat_compare_means(method = "t.test", label = "p.format") +
+  theme(legend.position = "none")
+
+ttest <- t.test(mpg ~ am, data = mtcars)
+ttest
+
+
+annot_text <- paste0("t = ", round(ttest$statistic, 2),
+                     ", df = ", round(ttest$parameter, 0),
+                     ", p = ", signif(ttest$p.value, 3))
+
+p + annotate("text", x = 1.5, y = max(mtcars$mpg) + 2, label = annot_text) +
+  stat_compare_means(method = "t.test", label = "p.format")
+
+
+
+Refl_summary = summarySE(refl_long_back,measurevar = "Reflect",groupvars = c("River","DamStatus"),na.rm = TRUE)
+Refl_summary$River = as.factor(Refl_summary$River)
+Refl_summary$DamStatus = as.factor(Refl_summary$DamStatus)
+Refl_summary$Pair = "A"
+Refl_summary$Pair[Refl_summary$River == "Kali" |Refl_summary$River == "Gang"  ] = "A"
+Refl_summary$Pair[Refl_summary$River == "Agha" |Refl_summary$River == "Shar"  ] = "B"
+
+pd = position_dodge(.5)  
+Refl_summary$DamStatus <- factor(Refl_summary$DamStatus, levels = c("Pre", "Post"))
+ggplot(Refl_summary, aes(x=DamStatus, y=Reflect,color=River,fill=River))+ 
+  geom_point(size = 3,position = pd) +
+  geom_errorbar(aes(ymin=Reflect-ci, ymax=Reflect+ci), position = pd) + facet_wrap(.~Pair)+
+  ylab("Reflectance") + xlab("")+ 
+  theme(legend.position="right")+
+  scale_linetype(guide = FALSE) + scale_fill_discrete(guide=FALSE)
