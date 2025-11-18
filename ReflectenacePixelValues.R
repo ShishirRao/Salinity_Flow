@@ -12,6 +12,7 @@ library(tidyr)
 library(purrr)
 library(lme4)
 library(lattice)
+library(lmerTest)
 
 setwd("E:/Shishir/FieldData/Analysis/Reflectance/")
 
@@ -350,7 +351,7 @@ ggplot(refl_long,aes(y = logssc, x = Reflect))+
 
 
 
-refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Band,Reflect,ssc_mean,logssc) %>%
+refl_long = refl_long %>% select(ImgDates,ScheduledDates,SamplingMonth,River,Band,Reflect,ssc_mean,logssc,Season) %>%
   filter(Band == "AvgRed")
 data = refl_long %>% filter(Band == "AvgRed")
 
@@ -403,6 +404,11 @@ fit_ran_incpt_without_Shar = lmer(logssc ~ Reflect + (1 | River), data = refl_lo
 summary(fit_ran_incpt_without_Shar)
 confint(fit_ran_incpt_without_Shar)
 
+fit_ran_incpt_without_lmertestShar = lmerTest::lmer(logssc ~ Reflect + (1 | River), data = refl_long_without_Shar)
+summ = summary(fit_ran_incpt_without_lmertestShar)
+
+signif(summ$coefficients[10],2)
+
 random_intercepts <- ranef(fit_ran_incpt_without_Shar)$River[, "(Intercept)"]
 dotplot(ranef(fit_ran_incpt_without_Shar, condVar = TRUE))
 
@@ -419,6 +425,12 @@ ggplot(random_effects_df, aes(x = group, y = intercept)) +
 
 refl_long_without_Shar$predicted_values <- predict(fit_ran_incpt_without_Shar, newdata = refl_long_without_Shar)
 
+
+
+data_text <- data.frame(label = c(paste0("log (SSC) =",round(summ$coefficients[2],2),"* RED + ",round(summ$coefficients[1],2))),
+                        x = 0.06,
+                        y = 8,River)  
+
 ggplot(refl_long_without_Shar, aes(x = Reflect, y = logssc, color = River)) +
   geom_point(alpha = 1.8) +
   geom_line(aes(y = predicted_values),linewidth = 1.5) +
@@ -429,9 +441,15 @@ ggplot(refl_long_without_Shar, aes(x = Reflect, y = logssc, color = River)) +
         axis.title=element_text(size=20,face="bold"),
         plot.title = element_text(size = 25, face = "bold"))+
   theme(legend.position="bottom", legend.text = element_text(size = 20),  # Adjust size for legend entries
-        legend.title = element_text(size = 22))
+        legend.title = element_text(size = 22))+
+  geom_text(data = data_text , size = 6, col = "black",
+            mapping = aes(x = x,
+                          y = y,
+                         label = label))
 
-#ggsave("E:/Shishir/FieldData/Results/RandomIntercept_v1.jpg",  width = 3, height = 2,scale = 3)
+?geom_text
+
+ggsave("E:/Shishir/FieldData/Results/RandomIntercept_v1.jpg",  width = 3, height = 2,scale = 3)
 
 # Using coef() with summary()
 fixed_effects <- coef(summary(fit_ran_incpt_without_Shar))[, "Estimate"]
@@ -610,10 +628,11 @@ ggplot(refl_long_back %>% filter(season == "dry") ,aes(y = Reflect, x = ImgDates
 # but random intercept mean and slope for Shar
 
 refl_long_back = left_join(refl_long_back,Reg_res)
-refl_long_back$SSC = (refl_long_back$Reflect * refl_long_back$slope) + refl_long_back$intercept
-refl_long_back$logSSC = log(refl_long_back$SSC)
+refl_long_back$logSSC = (refl_long_back$Reflect * refl_long_back$slope) + refl_long_back$intercept
+range(refl_long_back$logSSC,na.rm = TRUE)
+refl_long_back$SSC = exp((refl_long_back$logSSC))
+range(refl_long_back$SSC,na.rm = TRUE)
 
-Reg_res
 
 ggplot(refl_long_back ,aes(y = logSSC, x = ImgDates))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Log (SSC) from 1988 - 2023 ")+ xlab("Imagery date") + ylab("log SSC")+
@@ -637,38 +656,38 @@ unique(refl_long_back$DamStatus)
 
 #Kali
 
-refl_long_back$DamStatus[refl_long_back$River == "Kali" & refl_long_back$year <1991] = "Pre"
+refl_long_back$DamStatus[refl_long_back$River == "Kali" & refl_long_back$year <1991] = "Pre-dam"
 refl_long_back$DamStatus[refl_long_back$River == "Kali" & 
-                           refl_long_back$year >= 1991 & refl_long_back$year <= 1999] = "Pre"
-refl_long_back$DamStatus[refl_long_back$River == "Kali" & refl_long_back$year > 1999 ] = "Post"
+                           refl_long_back$year >= 1991 & refl_long_back$year <= 1999] = "Pre-dam"
+refl_long_back$DamStatus[refl_long_back$River == "Kali" & refl_long_back$year > 1999 ] = "Post-dam"
 
 #Gang
-refl_long_back$DamStatus[refl_long_back$River == "Gang" & refl_long_back$year < 1991] = "Pre"
+refl_long_back$DamStatus[refl_long_back$River == "Gang" & refl_long_back$year < 1991] = "Pre-dam"
 refl_long_back$DamStatus[refl_long_back$River == "Gang" & 
-                           refl_long_back$year >= 1991 & refl_long_back$year <= 1999] = "Pre"
-refl_long_back$DamStatus[refl_long_back$River == "Gang" & refl_long_back$year > 1999 ] = "Post"
+                           refl_long_back$year >= 1991 & refl_long_back$year <= 1999] = "Pre-dam"
+refl_long_back$DamStatus[refl_long_back$River == "Gang" & refl_long_back$year > 1999 ] = "Post-dam"
 
 #Shar
 
-refl_long_back$DamStatus[refl_long_back$River == "Shar" & refl_long_back$year <1999] = "Pre"
+refl_long_back$DamStatus[refl_long_back$River == "Shar" & refl_long_back$year <1999] = "Pre-dam"
 refl_long_back$DamStatus[refl_long_back$River == "Shar" & refl_long_back$year >= 1999 
-                         & refl_long_back$year <= 2003] = "Pre"
-refl_long_back$DamStatus[refl_long_back$River == "Shar" & refl_long_back$year > 2003 ] = "Post"
+                         & refl_long_back$year <= 2003] = "Pre-dam"
+refl_long_back$DamStatus[refl_long_back$River == "Shar" & refl_long_back$year > 2003 ] = "Post-dam"
 
 #Agha
 
-refl_long_back$DamStatus[refl_long_back$River == "Agha" & refl_long_back$year <1999] = "Pre"
+refl_long_back$DamStatus[refl_long_back$River == "Agha" & refl_long_back$year <1999] = "Pre-dam"
 refl_long_back$DamStatus[refl_long_back$River == "Agha" & refl_long_back$year >= 1999 
-                         & refl_long_back$year <= 2003] = "Pre"
-refl_long_back$DamStatus[refl_long_back$River == "Agha" & refl_long_back$year > 2003 ] = "Post"
+                         & refl_long_back$year <= 2003] = "Pre-dam"
+refl_long_back$DamStatus[refl_long_back$River == "Agha" & refl_long_back$year > 2003 ] = "Post-dam"
 
 unique(refl_long_back$DamStatus)
 
 # Use data until 2012 to maintain temporal consistency in image availability
-refl_long_back = refl_long_back[refl_long_back$year <= 2012,]
 
-refl_long_back$DamStatus <- factor(refl_long_back$DamStatus, levels = c("Pre", "Post"))
+refl_long_back$DamStatus <- factor(refl_long_back$DamStatus, levels = c("Pre-dam", "Post-dam"))
 refl_long_back$River <- factor(refl_long_back$River, levels = c("Agha", "Shar","Gang","Kali"))
+
 
 hum_names <- as_labeller(
   c("Agha" = "Aghanashini",
@@ -676,19 +695,8 @@ hum_names <- as_labeller(
     "Kali" = "Kali", 
     "Shar" = "Sharavathi"))
 
-ggplot(refl_long_back ,aes(y = Reflect, x = DamStatus))+
-  geom_boxplot(aes(group = DamStatus)) + facet_wrap(.~River,nrow = 2, ncol = 2,labeller = hum_names)+ theme_bw()+
-  theme(legend.position="bottom",
-        axis.text=element_text(size=18),
-        axis.title=element_text(size=20,face="bold"),
-        plot.title = element_text(size = 25, face = "bold"),
-        strip.text.x = element_text(size = 20))+
-  theme(legend.position="bottom", legend.text = element_text(size = 16),  # Adjust size for legend entries
-        legend.title = element_text(size = 22))
-
-
-summary1 = refl_long_back  %>% group_by(River) %>%
-  do(mod = t.test(Reflect ~ DamStatus, data = .)) %>% ungroup() %>% 
+summary1 = refl_long_back[refl_long_back$year <= 2012,]  %>% group_by(River) %>%
+  do(mod = t.test(logSSC ~ DamStatus, data = .)) %>% ungroup() %>% 
   mutate(tidy = map(mod, broom::tidy),
          glance = map(mod, broom::glance),
          t = glance %>% map_dbl('statistic'),
@@ -697,3 +705,123 @@ summary1 = refl_long_back  %>% group_by(River) %>%
   select(River,t,p_val,df)
 
 
+summary1$t = round(summary1$t,2)
+summary1$df = round(summary1$df,2)
+summary1$p_val[1:3] = round(summary1$p_val[1:3],3)
+summary1$p_val[4] = signif(summary1$p_val[4],3)
+summary1 = as.data.frame(summary1)
+
+2012-2000
+
+data_text <- data.frame(label = c(paste0("t (",summary1$df[1],") = ", summary1$t[1], ", p.val = ",summary1$p_val[1]),
+                                  paste0("t (",summary1$df[2],") = ", summary1$t[2], ", p.val = ",summary1$p_val[2]),
+                                  paste0("t (",summary1$df[3],") = ", summary1$t[3], ", p.val = ",summary1$p_val[3]),
+                                  paste0("t (",summary1$df[4],") = ", summary1$t[4], ", p.val = ",summary1$p_val[4])),
+                        x = c("Post-dam", "Pre-dam", "Pre-dam", "Pre-dam"),
+                        y = c(6.3, 5.8, 7.3, 2.3),
+                        River = summary1$River)  
+
+
+ggplot(refl_long_back[refl_long_back$year <= 2012,] ,aes(y = logSSC, x = DamStatus))+
+  geom_boxplot(aes(group = DamStatus)) + facet_wrap(.~River,nrow = 2, ncol = 2,labeller = hum_names,scales = "free")+ theme_bw()+
+  ylab("log (SSC)") + xlab("")+
+  theme(legend.position="bottom",
+        axis.text=element_text(size=18),
+        axis.title=element_text(size=20,face="bold"),
+        plot.title = element_text(size = 25, face = "bold"),
+        strip.text.x = element_text(size = 20))+
+  theme(legend.position="bottom", legend.text = element_text(size = 16),  # Adjust size for legend entries
+        legend.title = element_text(size = 22))+
+  geom_text(data = data_text, size = 6,
+            mapping = aes(x = x,
+                          y = y,
+                          label = label,hjust = c(0.9,-0.1,0,-0.04)))
+
+#ggsave("E:/Shishir/FieldData/Results/Pre_vs_Post_v1.jpg",  width = 5, height = 3, scale = 3)
+
+
+## seasonality in SSC post-dam i.e after 2010 ### 
+
+refl_long_back$day = lubridate::yday(refl_long_back$ImgDates)
+names(refl_long_back)
+
+unique(refl_long_back$day)
+
+refl_long_back$year = as.factor(refl_long_back$year)
+
+quantiles_to_calculate <- c(0.1, 0.25, 0.50, 0.75, 0.9)
+grouped_quantiles <- refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) %>%
+  group_by(River) %>%
+  summarize(
+    Q10 = quantile(logSSC, probs = quantiles_to_calculate[1],na.rm=TRUE),
+    Q25 = quantile(logSSC, probs = quantiles_to_calculate[2],na.rm=TRUE),
+    Q50 = quantile(logSSC, probs = quantiles_to_calculate[3],na.rm=TRUE),
+    Q75 = quantile(logSSC, probs = quantiles_to_calculate[4],na.rm=TRUE),
+    Q90 = quantile(logSSC, probs = quantiles_to_calculate[5],na.rm=TRUE)
+    
+  )
+
+max(refl_long_back$Reflect[refl_long_back$River == "Shar" & refl_long_back$ImgDates>= ymd("2012-01-01")],na.rm = TRUE)
+
+grouped_quantiles$Q25[1]
+
+hline_10 = data.frame(River=c("Agha", "Shar", "Gang", "Kali"),
+                      threshold=c(grouped_quantiles$Q10[1],
+                                  grouped_quantiles$Q10[2],
+                                  grouped_quantiles$Q10[3],
+                                  grouped_quantiles$Q10[4]))
+
+
+hline_25 = data.frame(River=c("Agha", "Shar", "Gang", "Kali"),
+                       threshold=c(grouped_quantiles$Q25[1],
+                                   grouped_quantiles$Q25[2],
+                                   grouped_quantiles$Q25[3],
+                                   grouped_quantiles$Q25[4]))
+
+hline_50 = data.frame(River=c("Agha", "Shar", "Gang", "Kali"),
+                      threshold=c(grouped_quantiles$Q50[1],
+                                  grouped_quantiles$Q50[2],
+                                  grouped_quantiles$Q50[3],
+                                  grouped_quantiles$Q50[4]))
+
+
+
+
+hline_75 = data.frame(River=c("Agha", "Shar", "Gang", "Kali"),
+                      threshold=c(grouped_quantiles$Q75[1],
+                                  grouped_quantiles$Q75[2],
+                                  grouped_quantiles$Q75[3],
+                                  grouped_quantiles$Q75[4]))
+
+hline_90 = data.frame(River=c("Agha", "Shar", "Gang", "Kali"),
+                      threshold=c(grouped_quantiles$Q90[1],
+                                  grouped_quantiles$Q90[2],
+                                  grouped_quantiles$Q90[3],
+                                  grouped_quantiles$Q90[4]))
+
+
+ggplot(refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) ,aes(y = logSSC, x = day))+ geom_point(aes(col = year))+
+  #geom_smooth(aes(col = year),span = 0.8)+
+  facet_wrap(.~River,nrow = 2, ncol = 2,scales = "free")+ theme_bw()+
+  ylab("log (SSC)") + xlab("Day of the year")+
+  geom_hline(data=hline_25, aes(yintercept=threshold), colour="salmon") +
+  geom_hline(data=hline_75, aes(yintercept=threshold), colour="green") +
+ # geom_hline(data=hline_10, aes(yintercept=threshold), colour="blue") +
+ # geom_hline(data=hline_90, aes(yintercept=threshold), colour="red")+
+  geom_hline(data=hline_50, aes(yintercept=threshold), colour="black")
+  
+
+
+outliers <- refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) %>%
+  group_by(River) %>%
+  dplyr::summarise(
+    n_75th_percentile = quantile(logSSC, probs = 0.75, na.rm = TRUE),
+    n_25th_percentile = quantile(logSSC, probs = 0.25, na.rm = TRUE),
+    n_50th_percentile = quantile(logSSC, probs = 0.50, na.rm = TRUE),
+    #count_exceeding_90th = sum(logSSC > n_90th_percentile,na.rm = TRUE),
+    CD = (n_75th_percentile - n_25th_percentile)/n_50th_percentile
+  )
+
+  
+
+?geom_smooth
