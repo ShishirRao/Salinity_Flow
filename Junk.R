@@ -594,3 +594,73 @@ ggplot(Refl_summary, aes(x=DamStatus, y=Reflect,color=River,fill=River))+
   ylab("Reflectance") + xlab("")+ 
   theme(legend.position="right")+
   scale_linetype(guide = FALSE) + scale_fill_discrete(guide=FALSE)
+
+
+grouped_quantiles <- refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) %>%
+  group_by(River) %>% 
+  summarize( Q10 = quantile(logSSC, probs = quantiles_to_calculate[1],na.rm=TRUE),
+             Q25 = quantile(logSSC, probs = quantiles_to_calculate[2],na.rm=TRUE),
+             Q50 = quantile(logSSC, probs = quantiles_to_calculate[3],na.rm=TRUE),
+             Q75 = quantile(logSSC, probs = quantiles_to_calculate[4],na.rm=TRUE),
+             Q90 = quantile(logSSC, probs = quantiles_to_calculate[5],na.rm=TRUE))
+
+
+
+max(refl_long_back$Reflect[refl_long_back$River == "Shar" & refl_long_back$ImgDates>= ymd("2012-01-01")],na.rm = TRUE)
+
+grouped_quantiles$Q25[1]
+
+hline_10 = data.frame(River=c("Agha", "Shar", "Gang", "Kali"),
+                      threshold=c(grouped_quantiles$Q10[1],
+                                  grouped_quantiles$Q10[2],
+                                  grouped_quantiles$Q10[3],
+                                  grouped_quantiles$Q10[4]))
+
+
+hline_25 = data.frame(River=c("Agha", "Shar", "Gang", "Kali"),
+                      threshold=c(grouped_quantiles$Q25[1],
+                                  grouped_quantiles$Q25[2],
+                                  grouped_quantiles$Q25[3],
+                                  grouped_quantiles$Q25[4]))
+
+hline_50 = data.frame(River=c("Agha", "Shar", "Gang", "Kali"),
+                      threshold=c(grouped_quantiles$Q50[1],
+                                  grouped_quantiles$Q50[2],
+                                  grouped_quantiles$Q50[3],
+                                  grouped_quantiles$Q50[4]))
+
+hline_75 = data.frame(River=c("Agha", "Shar", "Gang", "Kali"),
+                      threshold=c(grouped_quantiles$Q75[1],
+                                  grouped_quantiles$Q75[2],
+                                  grouped_quantiles$Q75[3],
+                                  grouped_quantiles$Q75[4]))
+
+hline_90 = data.frame(River=c("Agha", "Shar", "Gang", "Kali"),
+                      threshold=c(grouped_quantiles$Q90[1],
+                                  grouped_quantiles$Q90[2],
+                                  grouped_quantiles$Q90[3],
+                                  grouped_quantiles$Q90[4]))
+
+
+ggplot(refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) ,aes(y = logSSC, x = day))+ geom_point(aes(col = year))+
+  #geom_smooth(aes(col = year),span = 0.8)+
+  facet_wrap(.~River,nrow = 2, ncol = 2,scales = "free")+ theme_bw()+
+  ylab("log (SSC)") + xlab("Day of the year")+
+  geom_hline(data=hline_25, aes(yintercept=threshold), colour="salmon") +
+  geom_hline(data=hline_75, aes(yintercept=threshold), colour="green") +
+  # geom_hline(data=hline_10, aes(yintercept=threshold), colour="blue") +
+  # geom_hline(data=hline_90, aes(yintercept=threshold), colour="red")+
+  geom_hline(data=hline_50, aes(yintercept=threshold), colour="black")
+
+
+
+outliers <- refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) %>%
+  group_by(River) %>%
+  dplyr::summarise(
+    n_75th_percentile = quantile(logSSC, probs = 0.75, na.rm = TRUE),
+    n_25th_percentile = quantile(logSSC, probs = 0.25, na.rm = TRUE),
+    n_50th_percentile = quantile(logSSC, probs = 0.50, na.rm = TRUE),
+    #count_exceeding_90th = sum(logSSC > n_90th_percentile,na.rm = TRUE),
+    CD = (n_75th_percentile - n_25th_percentile)/n_50th_percentile
+  )
+

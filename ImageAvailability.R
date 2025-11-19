@@ -70,6 +70,7 @@ unique(pix_back$Remove)
 pix_back$Remove = replace_na(pix_back$Remove,"Keep")
 pix_back = pix_back %>% filter(Remove != "Yes")
 
+## the code above this line is repeated from ReflectancePixelValues.R so that this can be run stand alone. ##
 
 ##### Checking for overlapping images between Landsat 5Theoph##### Checking for overlapping images between Landsat 5, 7, 8 and 9 #####
 #Create a date series for 2023 spaced 8 days apart
