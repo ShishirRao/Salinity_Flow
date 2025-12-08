@@ -277,6 +277,11 @@ theme(axis.text=element_text(size=14),
 #        scale = 3, width = 5, height = 3,
 #        dpi = 300, limitsize = TRUE)
 
+
+factor(refl_long$River)
+
+refl_long$River <- factor(refl_long$River, levels = c("Agha", "Shar","Gang","Kali"))
+
 #multiple linear regressions
   summary = refl_long  %>% group_by(River) %>%
     do(mod = lm(logssc ~ Reflect, data = .)) %>% ungroup() %>% 
@@ -289,46 +294,40 @@ theme(axis.text=element_text(size=14),
            slope = tidy %>% map_dbl(function(x) x$estimate[2]))  %>%
     select(River,rsq,adj.rsq,p_val,intercept,slope)
   
+  summary[,2:6] = round(summary[,2:6],3)
+  
+
+#refl_long = left_join(refl_long,summary) 
+
+#River_rsq = c(as.character(round(unique(refl_long$rsq),3)))
+#River_Adjrsq = c(as.character(round(unique(refl_long$adj.rsq),3)))
+#River_pval = c(as.character(round(unique(refl_long$p_val),3)))
+#River_slope = c(as.character(round(unique(refl_long$slope),3)))
+#River_intercept = c(as.character(round(unique(refl_long$intercept),3)))
+#River = c("Agha","Shar","Gang","Kali")
+#River <- factor(River, levels = c("Agha", "Shar","Gang","Kali"))
 
 
-refl_long = left_join(refl_long,summary) 
+#Reg_res = data.frame(slope = River_slope,intercept = River_intercept,River = River)
+Reg_res = data.frame(slope = summary$slope,intercept = summary$intercept,River = summary$River)
 
-River_rsq = c(as.character(round(unique(refl_long$rsq),3)))
-River_Adjrsq = c(as.character(round(unique(refl_long$adj.rsq),3)))
-River_pval = c(as.character(round(unique(refl_long$p_val),3)))
-River_slope = c(as.character(round(unique(refl_long$slope),3)))
-River_intercept = c(as.character(round(unique(refl_long$intercept),3)))
-River = c("Agha","Gang","Kali","Shar")
-
-Reg_res = data.frame(slope = River_slope,intercept = River_intercept,River = River)
 
 hum_names <- as_labeller(
-  c("Agha" = paste("Agha: ","AdjR2 =",River_Adjrsq[1],",Intercept = ",River_intercept[1],"Slope = ",River_slope[1],"p.val = ",River_pval[1]), 
-    "Gang" = paste("Gang: ","AdjR2 =",River_Adjrsq[2],",Intercept = ",River_intercept[2],"Slope = ",River_slope[2],"p.val = ",River_pval[2]), 
-    "Kali" = paste("Kali: ","AdjR2 =",River_Adjrsq[3],",Intercept = ",River_intercept[3],"Slope = ",River_slope[3],"p.val = ",River_pval[3]),  
-    "Shar" = paste("Shar: ","AdjR2 =",River_Adjrsq[4],",Intercept = ",River_intercept[4],"Slope = ",River_slope[4],"p.val = ",River_pval[4]))) 
-
-hum_names <- as_labeller(
-  c("Agha" = "Aghanashini",
-    "Gang" = "Gangavali",
-    "Kali" = "Kali", 
-    "Shar" = "Sharavathi"))
+  c("Agha" = "Aghanashini","Shar" = "Sharavathi","Gang" = "Gangavali", "Kali" = "Kali"))
 
 
-data_text <- data.frame(label = c(paste("Log (SSC) = ",River_slope[1],"* RED +",River_intercept[1], "\n AdjR2 =",River_Adjrsq[1],",","p.val = ",River_pval[1]),
-                                  paste("Log (SSC) = ",River_slope[2],"* RED +",River_intercept[2], "\n AdjR2 =",River_Adjrsq[2],",","p.val = ",River_pval[2]),
-                                  paste("Log (SSC) = ",River_slope[3],"* RED +",River_intercept[3], "\n AdjR2 =",River_Adjrsq[3],",","p.val = ",River_pval[3]),
-                                  paste("Log (SSC) = ",River_slope[4],"* RED +",River_intercept[4],"\n AdjR2 =",River_Adjrsq[4],",","p.val = ",River_pval[4])),
-                        x = c(0.06, 0.067, 0.058, 0.05),
-                        y = c(5.8, 8.2, 2.66, 1.88),
+data_text <- data.frame(label = c(paste("Log (SSC) = ",summary$slope[1],"* RED +",summary$intercept[1], "\n AdjR2 =",summary$adj.rsq[1],",","p.val = ",summary$p_val[1]),
+                                  paste("Log (SSC) = ",summary$slope[2],"* RED +",summary$intercept[2], "\n AdjR2 =",summary$adj.rsq[2],",","p.val = ",summary$p_val[2]),
+                                  paste("Log (SSC) = ",summary$slope[3],"* RED +",summary$intercept[3], "\n AdjR2 =",summary$adj.rsq[3],",","p.val = ",summary$p_val[3]),
+                                  paste("Log (SSC) = ",summary$slope[4],"* RED +",summary$intercept[4],"\n AdjR2 =",summary$adj.rsq[4],",","p.val = ",summary$p_val[4])),
+                        x = c(0.06, 0.05, 0.067, 0.058 ),
+                        y = c(5.8, 1.88, 8.2, 2.66),
                         River)  
 
 class(refl_long$River)
 
 unique(refl_long$River)
 
-
-refl_long$River <- factor(refl_long$River, levels = c("Agha", "Kali","Gang","Shar"))
 
 
 ggplot(refl_long,aes(y = logssc, x = Reflect))+
@@ -351,11 +350,11 @@ ggplot(refl_long,aes(y = logssc, x = Reflect))+
                           y = y,
                           label = label))
 
-# ggsave("SSCvsRed_withPvals.jpg", device = "jpg",path = "E:/Shishir/FieldData/Results/",
+# ggsave("SSCvsRed_withPvals_v2.jpg", device = "jpg",path = "E:/Shishir/FieldData/Results/",
 #        scale = 3, width = 5, height = 3,
 #         dpi = 300, limitsize = TRUE)
 
-#ggsave("E:/Shishir/FieldData/Results/SSCvsRedbyNIR_withPvals_v1.jpg",  width = 6, height = 3.5,scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/SSCvsRedbyNIR_withPvals_v2.jpg",  width = 6, height = 3.5,scale = 3)
 
 
 
