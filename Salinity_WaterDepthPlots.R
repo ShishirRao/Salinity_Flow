@@ -1,4 +1,5 @@
 library(padr)
+library(cowplot)
 
 #### Aghanashini #####
 nrow(Agha_depth)
@@ -16,7 +17,7 @@ Agha_fig = gather(Agha_fig,key = "parameter",value = "value",depth,Salinity)
 
 ggplot(Agha_fig, aes(x = Date_time, y = value)) + geom_line() + 
   facet_grid(parameter ~ ., scales = "free_y") + theme(legend.position = "none")+
-  scale_x_datetime(date_labels = "%b%-%y",date_breaks = "30 days")+theme_bw() +
+  scale_x_datetime(date_labels = "%b%-%y",date_breaks = "30 days")+theme_bw() + geom_smooth()+
   theme(axis.text=element_text(size=14),
         axis.title=element_text(size=16,face="bold"),
         plot.title = element_text(size = 20, face = "bold"))+
@@ -26,7 +27,7 @@ ggplot(Agha_fig, aes(x = Date_time, y = value)) + geom_line() +
 # Create main plot
 p_main <- ggplot(Agha_fig, aes(x = Date_time, y = value)) + geom_line() + 
   facet_grid(parameter ~ ., scales = "free_y") + theme(legend.position = "none")+
-  scale_x_datetime(date_labels = "%b\n%Y",date_breaks = "30 days")+theme_bw() +
+  scale_x_datetime(date_labels = "%b\n%Y",date_breaks = "30 days")+theme_bw() + geom_smooth()+
   theme(axis.text=element_text(size=18),
         axis.title=element_text(size=20,face="bold"),
         plot.title = element_text(size = 25, face = "bold"))+
@@ -68,7 +69,9 @@ ggdraw() +
   draw_plot(p_inset1, x = 0.58, y = 0.70, width = 0.4, height = 0.24)+ # Position and size of inset
   draw_plot(p_inset2, x = 0.58, y = 0.26, width = 0.4, height = 0.24) # Position and size of inset
 
-ggsave("E:/Shishir/FieldData/Results/Agha_Sal_Depth_v2.jpg", width = 6, height = 3.5,scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/Agha_Sal_Depth_v3.jpg", width = 6, height = 3.5,scale = 3)
+
+?ggdraw()
 
 #### Gangavali #####
 head(Gang_depth)
@@ -85,7 +88,7 @@ Gang_fig = Gang_fig %>% filter(!(is.na(Gang_fig$depth) & is.na(Gang_fig$Salinity
 Gang_fig = gather(Gang_fig,key = "parameter",value = "value",depth,Salinity)
 
 ggplot(Gang_fig[Gang_fig$Date_time <= ymd_hms("2023-11-14 17:00:00"),], aes(x = Date_time, y = value)) + geom_line() + 
-  facet_grid(parameter ~ ., scales = "free_y") + theme(legend.position = "none")+
+  facet_grid(parameter ~ ., scales = "free_y") + theme(legend.position = "none")+ geom_smooth()+
   scale_x_datetime(date_labels = "%b%-%y",date_breaks = "30 days")+theme_bw() +
   theme(axis.text=element_text(size=14),
         axis.title=element_text(size=16,face="bold"),
@@ -96,7 +99,7 @@ ggplot(Gang_fig[Gang_fig$Date_time <= ymd_hms("2023-11-14 17:00:00"),], aes(x = 
 
 ggplot(Gang_fig[Gang_fig$Date_time <= ymd_hms("2023-11-14 17:00:00"),], aes(x = Date_time, y = value)) + geom_line() + 
   facet_grid(parameter ~ ., scales = "free_y") + theme(legend.position = "none")+
-  scale_x_datetime(date_labels = "%b\n%Y",date_breaks = "30 days")+theme_bw() +
+  scale_x_datetime(date_labels = "%b\n%Y",date_breaks = "30 days")+theme_bw() + geom_smooth()+
   theme(axis.text=element_text(size=18),
         axis.title=element_text(size=20,face="bold"),
         plot.title = element_text(size = 25, face = "bold"))+
@@ -112,7 +115,7 @@ ggplot(Gang_fig[Gang_fig$parameter == "depth" & Gang_fig$month == 4,], aes(x = D
   xlab("") + ylab("")+
   theme(strip.background = element_blank(), strip.text = element_blank())
 
-ggsave("E:/Shishir/FieldData/Results/Gang_Sal_Depth_v2.jpg", width = 6, height = 3.5,scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/Gang_Sal_Depth_v3.jpg", width = 6, height = 3.5,scale = 3)
 
 
 #### Sharavathi ####
@@ -122,7 +125,14 @@ head(Sal_Shar)
 tail(Shar_depth)
 tail(Sal_Shar)
 
+head(Sal_Shar)
+tail(Sal_Shar)
 
+summary(Sal_Shar$Salinity[Sal_Shar$month == 12])
+
+
+standard.error <- function(x) sd(x) / sqrt(length(x))
+standard.error(Sal_Shar$Salinity[Sal_Shar$month == 12])
 
 Date_time = data.frame(Date_time = seq(from = min(Shar_depth$Date_time), to = max(Shar_depth$Date_time),by = "5 mins"))
 Shar_fig = left_join(Date_time,Shar_depth %>% select(Date_time,depth))
@@ -134,7 +144,7 @@ Shar_fig = gather(Shar_fig,key = "parameter",value = "value",depth,Salinity)
 Shar_fig = Shar_fig[complete.cases(Shar_fig),]
 
 ggplot(Shar_fig, aes(x = Date_time, y = value)) + geom_line() + 
-  facet_grid(parameter ~ ., scales = "free_y") + theme(legend.position = "none")+
+  facet_grid(parameter ~ ., scales = "free_y") + theme(legend.position = "none")
   scale_x_datetime(date_labels = "%b%-%d",date_breaks = "30 days")+theme_bw() +
   theme(axis.text=element_text(size=14),
         axis.title=element_text(size=16,face="bold"),
@@ -145,7 +155,7 @@ ggplot(Shar_fig, aes(x = Date_time, y = value)) + geom_line() +
 # Create main plot
 ggplot(Shar_fig[Shar_fig$Date_time <= ymd_hms("2023-11-14 17:00:00"),], aes(x = Date_time, y = value)) + geom_line() + 
   facet_grid(parameter ~ ., scales = "free_y") + theme(legend.position = "none")+
-  scale_x_datetime(date_labels = "%b\n%Y",date_breaks = "30 days")+theme_bw() +
+  scale_x_datetime(date_labels = "%b\n%Y",date_breaks = "30 days")+theme_bw() + geom_smooth()+
   theme(axis.text=element_text(size=18),
         axis.title=element_text(size=20,face="bold"),
         plot.title = element_text(size = 25, face = "bold"))+
@@ -156,6 +166,7 @@ ggplot(Shar_fig[Shar_fig$Date_time <= ymd_hms("2023-11-14 17:00:00"),], aes(x = 
 ggplot(Shar_fig[Shar_fig$Date_time <= ymd_hms("2023-11-14 17:00:00") & Shar_fig$month == 4,], aes(x = Date_time, y = value)) + geom_line() + 
   facet_grid(parameter ~ ., scales = "free_y") + theme(legend.position = "none")+
   scale_x_datetime(date_labels = "%d-%b",date_breaks = "48 hours")+theme_bw() +
+  geom_smooth()+
   theme(axis.text=element_text(size=18),
         axis.title=element_text(size=20,face="bold"),
         plot.title = element_text(size = 25, face = "bold"))+
@@ -163,11 +174,11 @@ ggplot(Shar_fig[Shar_fig$Date_time <= ymd_hms("2023-11-14 17:00:00") & Shar_fig$
   ggtitle("4.1 Sharavathi: April, 2023")+
   theme(strip.background = element_blank(), strip.text = element_blank())
 
-ggsave("E:/Shishir/FieldData/Results/Shar_Sal_Depth_v3_April.jpg",  width = 6, height = 3.5,scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/Shar_Sal_Depth_v4.jpg",  width = 6, height = 3.5,scale = 3)
 
 ### Kali ###
 
-head(Kali_depth)
+tail(Kali_depth)
 head(Kali_sal)
 
 Kali_depth$depth[is.na(Kali_depth$depth)] = 0
@@ -195,7 +206,7 @@ ggplot(Kali_fig[Kali_fig$month ==6 & Kali_fig$year == 2024,], aes(x = Date_time,
 p_main <- ggplot(Kali_fig[Kali_fig$year == 2024,],aes(x = Date_time, y = value)) + geom_line() + 
   facet_grid(parameter ~ ., scales = "free_y") + theme(legend.position = "none")+
   scale_x_datetime(date_labels = "%b\n%Y",date_breaks = "30 days",
-                   limits = c(ymd_hms("2024-01-01 00:00:00"),ymd_hms("2024-11-20 00:00:00")))+
+                   limits = c(ymd_hms("2024-01-01 00:00:00"),ymd_hms("2024-11-20 00:00:00")))+ geom_smooth()+
                      theme_bw() +
   theme(axis.text=element_text(size=18),
         axis.title=element_text(size=20,face="bold"),
@@ -239,15 +250,23 @@ p_inset3 <- ggplot(Kali_fig[Kali_fig$parameter == "depth" &   Kali_fig$year == 2
   xlab("") + ylab("")+
   theme(strip.background = element_blank(), strip.text = element_blank())
 
-ggplot(Kali_fig[Kali_fig$year == 2024 & Kali_fig$month == 10,],aes(x = Date_time, y = value)) + geom_line() + 
+
+#& Kali_fig$month >= 6 & Kali_fig$month <= 9,
+temp = Kali_fig[Kali_fig$year == 2024 & Kali_fig$month == 4,]
+
+range(temp$value[temp$parameter == "Salinity"],na.rm = TRUE)
+
+
+
+ggplot(Kali_fig[Kali_fig$year == 2024 & Kali_fig$month == 4,],aes(x = Date_time, y = value)) + geom_line() + 
   facet_grid(parameter ~ ., scales = "free_y") + theme(legend.position = "none")+
-  scale_x_datetime(date_labels = "%d",date_breaks = "1 day")+
+  scale_x_datetime(date_labels = "%b-%d",date_breaks = "30 day")+ #geom_smooth()+
   theme_bw() +
   theme(axis.text=element_text(size=18),
         axis.title=element_text(size=20,face="bold"),
         plot.title = element_text(size = 25, face = "bold"))+
   xlab("Date") + ylab("Salinity (ppm)                                        Water depth(m)")+
-  ggtitle("3.2 Kali")+
+  ggtitle("5.1 Kali, 2023")+
   theme(strip.background = element_blank(), strip.text = element_blank())
 
 
@@ -260,4 +279,4 @@ ggdraw() +
   
 
 
-ggsave("E:/Shishir/FieldData/Results/Kali_Sal_Depth_v2.jpg",  width = 6, height = 3.5,scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/Kali_Sal_Depth_v1_2023.jpg",  width = 6, height = 3.5,scale = 3)

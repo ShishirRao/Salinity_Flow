@@ -264,3 +264,5 @@ ssc_mean_Season = ssc_mean_Season %>% select("River","Season","N","ssc_mean","se
 
 ssc_mean_samplesize = summarySE(ssc_mean,measurevar = "ssc_mean",groupvars = c("River"),na.rm = TRUE)
 names(ssc_mean_Season)[3] = "In_situ_sample_size"
+
+range(ssc_mean$logssc[ssc_mean$River == "Shar"])

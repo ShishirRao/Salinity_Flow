@@ -200,16 +200,11 @@ BrightImages = refl_long %>% filter(Band == "AvgBright" & Reflect >= 0.5)
 #   theme(axis.text=element_text(size=6),
 #         axis.title=element_text(size=14,face="bold"))
 
+#refl_long = (refl_long[-which(refl_long$River == "Shar" & refl_long$Band == "AvgRed" & refl_long$Reflect > 0.08),])
+
+
 ggplot(refl_long %>% filter(Band == "AvgRed") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River,method = "auto"),span = .4) + ggtitle("Red Reflectance")+ xlab("Imagery date") + ylab("Red Reflectance from L8 and L9")+
-  scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
-  theme(axis.text=element_text(size=13),
-        axis.title=element_text(size=14,face="bold"))+
-  theme(legend.position="bottom")
-
-ggplot(refl_long %>% filter(Band == "AvgGreen") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
-  geom_smooth(aes(group = River,col = River,method = "auto"),span = .4) + ggtitle("Green Reflectance")+ xlab("Imagery date") +
-  ylab("Green Reflectance from L8 and L9")+
   scale_x_date(date_labels = "%b",date_breaks = "30 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
         axis.title=element_text(size=14,face="bold"))+

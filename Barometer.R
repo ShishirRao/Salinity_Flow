@@ -436,7 +436,7 @@ Kali_depth$depth[Kali_depth$Date_time > ymd_hms("2024-05-10 09:00:00") &
 
 
 
-  ggplot(Kali_depth[Kali_depth$year == 2023 & Kali_depth$month == 7,],aes(y = depth, x =Date_time ))+geom_line()+
+  ggplot(Kali_depth,aes(y = depth, x =Date_time ))+geom_line()+
   scale_x_datetime(date_labels = "%b%n%d",date_breaks = "30 days")+theme_bw()
 
 

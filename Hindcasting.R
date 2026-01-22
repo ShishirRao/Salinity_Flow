@@ -271,6 +271,7 @@ data_text <- data.frame(label = c(paste0("t (",summary1$df[1],") = ", summary1$t
                         y = c(6.3, 5.8, 7.3, 2.3),
                         River = summary1$River)  
 
+unique(refl_long_back$year)
 
 ggplot(refl_long_back[refl_long_back$year <= 2012,] ,aes(y = logSSC, x = DamStatus))+
   geom_boxplot(aes(group = DamStatus)) + facet_wrap(.~River,nrow = 2, ncol = 2,labeller = hum_names,scales = "free")+ theme_bw()+

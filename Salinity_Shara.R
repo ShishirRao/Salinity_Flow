@@ -71,6 +71,11 @@ ggplot(Sal_Shar,aes(y = Salinity, x =Date_time ))+geom_line()+ xlab("Date")+ yla
         plot.title = element_text(size = 20, face = "bold"))
 
 
+ggplot(Sal_Shar,aes(y = Temp_degC_Cond, x =Date_time ))+geom_line()+ xlab("Date")+ ylab("Salinity (ppm)")+
+  scale_x_datetime(date_labels = "%b%n%d",date_breaks = "30 days")+theme_bw() + ggtitle ("Sharavathi")+
+  theme(axis.text=element_text(size=14),
+        axis.title=element_text(size=16,face="bold"),
+        plot.title = element_text(size = 20, face = "bold"))
 
 
 
