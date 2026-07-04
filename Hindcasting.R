@@ -274,7 +274,7 @@ data_text <- data.frame(label = c(paste0("t (",summary1$df[1],") = ", summary1$t
 unique(refl_long_back$year)
 
 ggplot(refl_long_back[refl_long_back$year <= 2012,] ,aes(y = logSSC, x = DamStatus))+
-  geom_boxplot(aes(group = DamStatus)) + facet_wrap(.~River,nrow = 2, ncol = 2,labeller = hum_names,scales = "free")+ theme_bw()+
+  geom_boxplot(aes(group = DamStatus, color = River),lwd =1.3) + facet_wrap(.~River,nrow = 2, ncol = 2,labeller = hum_names,scales = "free")+ theme_bw()+
   ylab("log (SSC)") + xlab("")+
   theme(legend.position="bottom",
         axis.text=element_text(size=18),
@@ -286,9 +286,13 @@ ggplot(refl_long_back[refl_long_back$year <= 2012,] ,aes(y = logSSC, x = DamStat
   geom_text(data = data_text, size = 6,
             mapping = aes(x = x,
                           y = y,
-                          label = label,hjust = c(0.9,-0.1,0,-0.04)))
+                          label = label,hjust = c(0.9,-0.1,0,-0.04)))+
+  scale_color_manual( values = c("Agha" = "dodgerblue3", 
+                                "Gang" = "skyblue2",
+                                "Kali" =  "coral1",
+                                "Shar" = "red4"))
 
-#ggsave("E:/Shishir/FieldData/Results/Pre_vs_Post_v1.jpg",  width = 5, height = 3, scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/Pre_vs_Post_v2.jpg",  width = 5, height = 3, scale = 3)
 ## seasonality in SSC post-dam i.e after 2010 ### 
 
 refl_long_back$day = lubridate::yday(refl_long_back$ImgDates)
@@ -316,19 +320,25 @@ refl_long_back = left_join(refl_long_back, grouped_quantiles_monthly)
 
 ggplot(refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) ,aes(y = logSSC, x = as.Date(day)))+
   geom_point(aes(col = year))+
-  #geom_smooth(col = "black", span = 0.1)+
+  geom_smooth(aes(col = River), span = 0.2)+
   facet_wrap(.~River,nrow = 2, ncol = 2,scales = "free",labeller =  hum_names)+
   theme_bw()+
   ylab("log (SSC)") + xlab("Month")+
   #geom_hline(data = refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) %>% select(Q50, River), aes(yintercept = Q50), colour="black")
-  geom_line(aes(y = Q50_monthly),color = "black")+
- geom_smooth(aes(y = Q50_monthly),color = "black",span = 0.1)+
-  theme(legend.position="right",
-        axis.text=element_text(size=18),
-        axis.title=element_text(size=20,face="bold"),
-        plot.title = element_text(size = 25, face = "bold"),
-        strip.text.x = element_text(size = 20))+
-  scale_x_date(date_labels = "%b",date_breaks = "35 day")
+  #geom_line(aes(y = Q50_monthly),color = "black")+
+ #geom_smooth(aes(y = Q50_monthly),color = River,span = 0.1)+
+  theme(legend.position="bottom",
+        axis.text=element_text(size=28),
+        axis.title=element_text(size=30,face="bold"),
+        plot.title = element_text(size = 28, face = "bold"),
+        strip.text.x = element_text(size = 30))+
+  scale_x_date(date_labels = "%b",date_breaks = "60 day")+
+  scale_color_manual( values = c("Agha" = "dodgerblue3", 
+                                 "Gang" = "skyblue2",
+                                 "Kali" =  "coral1",
+                                 "Shar" = "red4"))
+
+
 
 grouped_quantiles_season <- refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) %>%
   group_by(River,season) %>% 
@@ -359,5 +369,5 @@ df <- df %>%
 
 ?geom_smooth
 
-#ggsave("E:/Shishir/FieldData/Results/SamplingSiteOnlyV2.jpg",  width = 5, height = 3, scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/SamplingSiteOnlyV4.jpg",  width = 5, height = 3, scale = 3)
 

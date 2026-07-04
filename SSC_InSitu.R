@@ -194,23 +194,49 @@ ssc$River = as.factor(ssc$River)
 
 
 #ssc_onlyCleandata 
-  
-  ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River),size = 1.9)+
+?log
+?log10
+
+# log is natural log. Changing it to log 10 (07/03/2023)
+  ggplot(ssc,aes(y = log10(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River),size = 1.9)+
   geom_smooth(aes(group = River,col = River,method = "auto"),span = 0.4,linewidth = 2) +
-  xlab("Date")+ylab("log(SSC (mg/L)) ")+ ggtitle("In-situ SSC")+
+  xlab("Date")+ylab("log10(SSC (mg/L)) ")+ ggtitle("In-situ SSC")+
   scale_x_date(date_labels = "%b\n%Y",date_breaks = "30 day")+theme_bw()+
     theme(axis.text=element_text(size=18),
           axis.title=element_text(size=20,face="bold"),
           plot.title = element_text(size = 25, face = "bold"))+
   theme(legend.position="bottom", legend.text = element_text(size = 20),  # Adjust size for legend entries
-      legend.title = element_text(size = 22))
+      legend.title = element_text(size = 22))+
+    scale_color_discrete(labels = c("Aghanashini", "Gangavali","Kali","Sharavathi"))
+  
+  #ssc$River == "Agha" | ssc$River == "Gangavali",
+  ggplot(ssc,aes(y = log(SSC..mg.l.), x = Sampling.Date))+
+    geom_point(aes(group = River,col = River),size = 1.9)+
+    geom_smooth(aes(group = River,col = River,method = "auto"),span = 0.4,linewidth = 2) +
+    xlab("Date")+ylab("log(SSC (mg/L)) ")+ ggtitle("In-situ SSC")+
+    scale_x_date(date_labels = "%b\n%Y",date_breaks = "30 day")+theme_bw()+
+    scale_color_manual(labels = c("Aghanashini", "Gangavali", "Kali","Sharavathi"),
+                        values = c("Agha" = "dodgerblue3", 
+                                 "Gangavali" = "skyblue2",
+                                 "Kali" =  "coral1",
+                                 "Sharavathi" = "red4"))+
+    theme(axis.text=element_text(size=18),
+          axis.title=element_text(size=20,face="bold"),
+          plot.title = element_text(size = 25, face = "bold"))+
+    theme(legend.position="right", legend.text = element_text(size = 20),  # Adjust size for legend entries
+          legend.title = element_text(size = 22))
+  
+  
+ unique(ssc$River) 
+ 
+ 
   
 
 
-#ggsave("E:/Shishir/FieldData/Results/ssc_onlyCleandata_v1.jpg",  width = 6, height = 3.5,scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/ssc_onlyCleandata_all_v5.jpg",  width = 6, height = 3.5,scale = 3)
+ ggsave("E:/Shishir/FieldData/Results/ssc_onlyCleandata_all_log10_v6.jpg",  width = 6, height = 3.5,scale = 3)
   
-  
-#ggsave("ssc_onlyCleandata_v1.jpg", ssc_onlyCleandata, device = "jpg",path = "E:/Shishir/FieldData/Results/",
+#ggsave("ssc_onlyCleandata_v5.jpg", ssc_onlyCleandata, device = "jpg",path = "E:/Shishir/FieldData/Results/",
 #       scale = 3, width = 5, height = 3,
 #       dpi = 300, limitsize = TRUE)
 
@@ -237,13 +263,14 @@ ssc_mean =   ssc %>% select(c("Sampling.Date","ScheduledDates","SSC..mg.l.","Sam
 ssc_mean = ssc_mean %>% dplyr::group_by(Sampling.Date,ScheduledDates,River) %>% dplyr::mutate(ssc_mean = mean(SSC..mg.l.))
 ssc_mean = ssc_mean %>% dplyr::select(-SSC..mg.l.) %>% distinct()
 
-ssc_mean$logssc = log(ssc_mean$ssc_mean)
+# log is natural log. Changing it to log 10 (07/03/2023)
+ssc_mean$logssc = log10(ssc_mean$ssc_mean)
 
 # rename the levels so that it matches with refletance data set
 levels(ssc_mean$River)[levels(ssc_mean$River) == "Gangavali"] <- "Gang"
 levels(ssc_mean$River)[levels(ssc_mean$River) == "Sharavathi"] <- "Shar"
 
-ssc_mean$Season = "wet"
+ssc_mean$Season = "Wet"
 ssc_mean$Season[ssc_mean$SamplingMonth == "Apr" | 
                 ssc_mean$SamplingMonth == "Mar" |
                 ssc_mean$SamplingMonth == "May" |
@@ -255,12 +282,14 @@ ssc_mean$Season[ssc_mean$SamplingMonth == "Oct" |
                   ssc_mean$SamplingMonth == "Jan"] = "Post-monsoon" 
 
 names(ssc_mean)
+?summarySE
 
 ssc_mean_Season = summarySE(ssc_mean,measurevar = "ssc_mean",groupvars = c("River","Season"),na.rm = TRUE)
 ssc_mean_Season$ssc_mean = round(ssc_mean_Season$ssc_mean,2)
 ssc_mean_Season$se = round(ssc_mean_Season$se,2)
+ssc_mean_Season$sd = round(ssc_mean_Season$sd,2)
 names(ssc_mean_Season)
-ssc_mean_Season = ssc_mean_Season %>% select("River","Season","N","ssc_mean","se")
+ssc_mean_Season = ssc_mean_Season %>% select("River","Season","N","ssc_mean","se","sd")
 
 ssc_mean_samplesize = summarySE(ssc_mean,measurevar = "ssc_mean",groupvars = c("River"),na.rm = TRUE)
 names(ssc_mean_Season)[3] = "In_situ_sample_size"

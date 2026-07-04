@@ -310,13 +310,15 @@ Reg_res = data.frame(slope = summary$slope,intercept = summary$intercept,River =
 hum_names <- as_labeller(
   c("Agha" = "Aghanashini","Shar" = "Sharavathi","Gang" = "Gangavali", "Kali" = "Kali"))
 
-
-data_text <- data.frame(label = c(paste("Log (SSC) = ",summary$slope[1],"* RED +",summary$intercept[1], "\n AdjR2 =",summary$adj.rsq[1],",","p.val = ",summary$p_val[1]),
-                                  paste("Log (SSC) = ",summary$slope[2],"* RED +",summary$intercept[2], "\n AdjR2 =",summary$adj.rsq[2],",","p.val = ",summary$p_val[2]),
-                                  paste("Log (SSC) = ",summary$slope[3],"* RED +",summary$intercept[3], "\n AdjR2 =",summary$adj.rsq[3],",","p.val = ",summary$p_val[3]),
-                                  paste("Log (SSC) = ",summary$slope[4],"* RED +",summary$intercept[4],"\n AdjR2 =",summary$adj.rsq[4],",","p.val = ",summary$p_val[4])),
+#changing from log to log 10 scale 07/03/2023
+data_text <- data.frame(label = c(paste("\n\nlog10(SSC) = ",summary$slope[1],"* RED +",summary$intercept[1], "\n AdjR2 =",summary$adj.rsq[1],",","p.val = ",summary$p_val[1]),
+                                  paste("\n\nlog10(SSC) = ",summary$slope[2],"* RED +",summary$intercept[2], "\n AdjR2 =",summary$adj.rsq[2],",","p.val = ",summary$p_val[2]),
+                                  paste("\n\nlog10(SSC) = ",summary$slope[3],"* RED +",summary$intercept[3], "\n AdjR2 =",summary$adj.rsq[3],",","p.val = ",summary$p_val[3]),
+                                  paste("\n\nlog10(SSC) = ",summary$slope[4],"* RED +",summary$intercept[4],"\n AdjR2 =",summary$adj.rsq[4],",","p.val = ",summary$p_val[4])),
                         x = c(0.06, 0.05, 0.067, 0.058 ),
-                        y = c(5.8, 1.88, 8.2, 2.66),
+                        #y = c(5.8, 1.88, 8.2, 2.66), original
+                        #y = c(10, 3, 12, 4), for defense
+                        y = c(3, 1.5, 4.5, 1.5),
                         River)  
 
 class(refl_long$River)
@@ -324,15 +326,14 @@ class(refl_long$River)
 unique(refl_long$River)
 
 
-
 ggplot(refl_long,aes(y = logssc, x = Reflect))+
-    geom_point(aes(color=Season),size = 3)+
-    #stat_summary(fun.data= mean_cl_normal) + 
-    geom_smooth(method='lm') + 
+  geom_point(aes(color=Season),size = 3)+
+  #stat_summary(fun.data= mean_cl_normal) + 
+  geom_smooth(method='lm') + 
   #facet_wrap(.~River, scales = "free",labeller = hum_names)+
   facet_wrap(~ River, scales = "free", labeller = hum_names)+
-    theme(strip.text = element_text(size = 1))+
-    ggtitle(" ")+theme_bw()+ xlab("Red Reflectance") +ylab("log(SSC (mg/L))")+
+  theme(strip.text = element_text(size = 1))+
+  ggtitle(" ")+theme_bw()+ xlab("Red Reflectance") +ylab("log10(SSC (mg/L))")+
   theme(legend.position="bottom",
         axis.text=element_text(size=18),
         axis.title=element_text(size=20,face="bold"),
@@ -345,11 +346,43 @@ ggplot(refl_long,aes(y = logssc, x = Reflect))+
                           y = y,
                           label = label))
 
-# ggsave("SSCvsRed_withPvals_v2.jpg", device = "jpg",path = "E:/Shishir/FieldData/Results/",
-#        scale = 3, width = 5, height = 3,
-#         dpi = 300, limitsize = TRUE)
+#plot for defense
+ggplot(refl_long,aes(y = logssc, x = Reflect))+
+    geom_point(aes(shape=Season),size = 3)+
+    #stat_summary(fun.data= mean_cl_normal) + 
+    geom_smooth(method='lm',aes(color = River)) + 
+  #facet_wrap(.~River, scales = "free",labeller = hum_names)+
+  facet_wrap(~ River, scales = "free", labeller = hum_names)+
+    theme(strip.text = element_text(size = 1))+
+    ggtitle(" ")+theme_bw()+ xlab("Red Reflectance") +ylab("log(SSC (mg/L))")+
+  theme(legend.position="bottom",
+        axis.text=element_text(size=28),
+        axis.title=element_text(size=30,face="bold"),
+        plot.title = element_text(size = 28, face = "bold"),
+        strip.text.x = element_text(size = 30))+
+  theme(legend.position="bottom", legend.text = element_text(size = 20),  # Adjust size for legend entries
+        legend.title = element_text(size = 22))+
+  geom_text(data = data_text, size = 8,
+            mapping = aes(x = x,
+                          y = y,
+                          label = label)) +
+  scale_color_manual(
+                     values = c("Agha" = "dodgerblue3", 
+                               "Gang" = "skyblue2",
+                              "Kali" =  "coral1",
+                             "Shar" = "red4"))
 
-#ggsave("E:/Shishir/FieldData/Results/SSCvsRedbyNIR_withPvals_v2.jpg",  width = 6, height = 3.5,scale = 3)
+  theme(axis.text=element_text(size=28),
+      axis.title=element_text(size=30,face="bold"),
+      plot.title = element_text(size = 28, face = "bold"))+
+
+unique(refl_long$River)
+
+# ggsave("SSCvsRed_withPvals_v3.jpg", device = "jpg",path = "E:/Shishir/FieldData/Results/",
+#        scale = 3, width = 5, height = 3,
+#       dpi = 300, limitsize = TRUE)
+
+#ggsave("E:/Shishir/FieldData/Results/SSCvsRedbyNIR_withPvals_v4_log10.jpg",  width = 6, height = 3.5,scale = 3)
 
 
 
@@ -429,9 +462,25 @@ refl_long_without_Shar$predicted_values <- predict(fit_ran_incpt_without_Shar, n
 
 
 
-data_text <- data.frame(label = c(paste0("log (SSC) =",round(summ$coefficients[2],2),"* RED + ",round(summ$coefficients[1],2))),
+data_text <- data.frame(label = c(paste0("log[10](SSC) ==",round(summ$coefficients[2],2)," %.% RED + ",round(summ$coefficients[1],2))),
                         x = 0.06,
-                        y = 8,River)  
+                        y = 3.5,River)  
+
+ggplot(refl_long_without_Shar, aes(x = Reflect, y = logssc, color = River)) +
+  geom_point(alpha = 1.8) +
+  geom_line(aes(y = predicted_values),linewidth = 1.5) +
+  labs(x = "Red Reflectance", y =expression(bold(log[10](SSC)))) +
+  theme_bw() +  theme(legend.position="bottom")+
+  theme(legend.position="bottom",
+        axis.text=element_text(size=18),
+        axis.title=element_text(size=20,face="bold"),
+        plot.title = element_text(size = 25, face = "bold"))+
+  theme(legend.position="bottom", legend.text = element_text(size = 20),  # Adjust size for legend entries
+        legend.title = element_text(size = 22))+
+  geom_text(data = data_text , size = 6, col = "black",
+            mapping = aes(x = x,
+                          y = y,
+                          label = label),parse = TRUE)
 
 ggplot(refl_long_without_Shar, aes(x = Reflect, y = logssc, color = River)) +
   geom_point(alpha = 1.8) +
@@ -447,11 +496,18 @@ ggplot(refl_long_without_Shar, aes(x = Reflect, y = logssc, color = River)) +
   geom_text(data = data_text , size = 6, col = "black",
             mapping = aes(x = x,
                           y = y,
-                         label = label))
+                         label = label))+
+  scale_color_manual(        values = c("Agha" = "dodgerblue3", 
+                                        "Gang" = "skyblue2",
+                                        "Kali" =  "coral1",
+                                        "Shar" = "red4"))
+  
+
+unique(refl_long_without_Shar$River)
 
 ?geom_text
 
-#ggsave("E:/Shishir/FieldData/Results/RandomIntercept_v1.jpg",  width = 3, height = 2,scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/RandomIntercept_v3_log10.jpg",  width = 3, height = 2,scale = 3)
 
 # Using coef() with summary()
 fixed_effects <- coef(summary(fit_ran_incpt_without_Shar))[, "Estimate"]
