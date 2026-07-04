@@ -200,7 +200,7 @@ ssc$River = as.factor(ssc$River)
 # log is natural log. Changing it to log 10 (07/03/2023)
   ggplot(ssc,aes(y = log10(SSC..mg.l.), x = Sampling.Date))+geom_point(aes(group = River,col = River),size = 1.9)+
   geom_smooth(aes(group = River,col = River,method = "auto"),span = 0.4,linewidth = 2) +
-  xlab("Date")+ylab("log10(SSC (mg/L)) ")+ ggtitle("In-situ SSC")+
+  xlab("Date")+ylab(expression(bold(log[10]) * bold("(SSC, mg/L)")))+ ggtitle("In-situ SSC")+
   scale_x_date(date_labels = "%b\n%Y",date_breaks = "30 day")+theme_bw()+
     theme(axis.text=element_text(size=18),
           axis.title=element_text(size=20,face="bold"),
@@ -234,7 +234,7 @@ ssc$River = as.factor(ssc$River)
 
 
 #ggsave("E:/Shishir/FieldData/Results/ssc_onlyCleandata_all_v5.jpg",  width = 6, height = 3.5,scale = 3)
- ggsave("E:/Shishir/FieldData/Results/ssc_onlyCleandata_all_log10_v6.jpg",  width = 6, height = 3.5,scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/ssc_onlyCleandata_all_log10_v6.jpg",  width = 6, height = 3.5,scale = 3)
   
 #ggsave("ssc_onlyCleandata_v5.jpg", ssc_onlyCleandata, device = "jpg",path = "E:/Shishir/FieldData/Results/",
 #       scale = 3, width = 5, height = 3,

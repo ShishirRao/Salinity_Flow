@@ -333,7 +333,7 @@ ggplot(refl_long,aes(y = logssc, x = Reflect))+
   #facet_wrap(.~River, scales = "free",labeller = hum_names)+
   facet_wrap(~ River, scales = "free", labeller = hum_names)+
   theme(strip.text = element_text(size = 1))+
-  ggtitle(" ")+theme_bw()+ xlab("Red Reflectance") +ylab("log10(SSC (mg/L))")+
+  ggtitle(" ")+theme_bw()+ xlab("Red Reflectance") +ylab(expression(bold(log[10]) * bold("(SSC, mg/L)")))+
   theme(legend.position="bottom",
         axis.text=element_text(size=18),
         axis.title=element_text(size=20,face="bold"),
@@ -372,9 +372,9 @@ ggplot(refl_long,aes(y = logssc, x = Reflect))+
                               "Kali" =  "coral1",
                              "Shar" = "red4"))
 
-  theme(axis.text=element_text(size=28),
-      axis.title=element_text(size=30,face="bold"),
-      plot.title = element_text(size = 28, face = "bold"))+
+#  theme(axis.text=element_text(size=28),
+#      axis.title=element_text(size=30,face="bold"),
+#      plot.title = element_text(size = 28, face = "bold"))+
 
 unique(refl_long$River)
 
@@ -469,7 +469,7 @@ data_text <- data.frame(label = c(paste0("log[10](SSC) ==",round(summ$coefficien
 ggplot(refl_long_without_Shar, aes(x = Reflect, y = logssc, color = River)) +
   geom_point(alpha = 1.8) +
   geom_line(aes(y = predicted_values),linewidth = 1.5) +
-  labs(x = "Red Reflectance", y =expression(bold(log[10](SSC)))) +
+  labs(x = "Red Reflectance", y =expression(bold(log[10](SSC)))) + ylab(expression(bold(log[10]) * bold("(SSC, mg/L)")))+
   theme_bw() +  theme(legend.position="bottom")+
   theme(legend.position="bottom",
         axis.text=element_text(size=18),
@@ -517,6 +517,7 @@ mean_intercept <- fixed_effects["(Intercept)"]
 mean_slope <- fixed_effects["Reflect"]
 
 Reg_res$slope = as.numeric(Reg_res$slope)
+
 Reg_res$intercept = as.numeric(Reg_res$intercept)
 
 Reg_res$slope[Reg_res$River == "Shar"] = mean_slope

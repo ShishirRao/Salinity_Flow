@@ -166,7 +166,7 @@ refl_long_back$season[refl_long_back$month == "Feb" |
                         refl_long_back$month == "Dec" |
                         refl_long_back$month == "Jan"] = "Post-monsoon" 
 
-ggplot(refl_long_back %>% filter(season == "dry") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
+ggplot(refl_long_back %>% filter(season == "Dry") ,aes(y = Reflect, x = ImgDates))+geom_point(aes(group = River,col = River))+
   geom_smooth(aes(group = River,col = River),span = .5) + ggtitle("Red Reflectance from 1988 - 2023: dry season")+ xlab("Imagery date") + ylab("Red Reflectance")+
   scale_x_date(date_labels = "%y",date_breaks = "365 day")+theme_bw()+
   theme(axis.text=element_text(size=13),
@@ -178,9 +178,12 @@ ggplot(refl_long_back %>% filter(season == "dry") ,aes(y = Reflect, x = ImgDates
 # but random intercept mean and slope for Shar
 
 refl_long_back = left_join(refl_long_back,Reg_res)
+# This is in log 10 now #07/04/2023
 refl_long_back$logSSC = (refl_long_back$Reflect * refl_long_back$slope) + refl_long_back$intercept
 range(refl_long_back$logSSC,na.rm = TRUE)
-refl_long_back$SSC = exp((refl_long_back$logSSC))
+#refl_long_back$SSC = exp((refl_long_back$logSSC))
+# 07/04/2023
+refl_long_back$SSC = 10^((refl_long_back$logSSC))
 range(refl_long_back$SSC,na.rm = TRUE)
 
 
@@ -247,6 +250,9 @@ hum_names <- as_labeller(
 
 summary1 = refl_long_back[refl_long_back$year <= 2012,]  %>% group_by(River) %>%
   do(mod = t.test(logSSC ~ DamStatus, data = .)) %>% ungroup() %>% 
+  # changing from logSSC to SSC. Addresssing Kyle's comments that the log scale here will squish the graph and make
+  # differences not obvious 
+  #do(mod = t.test(SSC ~ DamStatus, data = .)) %>% ungroup() %>% 
   mutate(tidy = map(mod, broom::tidy),
          glance = map(mod, broom::glance),
          t = glance %>% map_dbl('statistic'),
@@ -268,11 +274,31 @@ data_text <- data.frame(label = c(paste0("t (",summary1$df[1],") = ", summary1$t
                                   paste0("t (",summary1$df[3],") = ", summary1$t[3], ", p.val = ",summary1$p_val[3]),
                                   paste0("t (",summary1$df[4],") = ", summary1$t[4], ", p.val = ",summary1$p_val[4])),
                         x = c("Post-dam", "Pre-dam", "Pre-dam", "Pre-dam"),
-                        y = c(6.3, 5.8, 7.3, 2.3),
+                        #y = c(6.3, 5.8, 7.3, 2.3),
+                        y = c(3,2.5, 3.5, 1), #07/04/2023
                         River = summary1$River)  
 
 unique(refl_long_back$year)
 
+# dissertation plot
+ggplot(refl_long_back[refl_long_back$year <= 2012,] ,aes(y = logSSC, x = DamStatus))+
+#ggplot(refl_long_back[refl_long_back$year <= 2012,] ,aes(y = SSC, x = DamStatus))+
+  geom_boxplot(aes(group = DamStatus)) + facet_wrap(.~River,nrow = 2, ncol = 2,labeller = hum_names,scales = "free")+ theme_bw()+
+#  ylab("log (SSC)") + xlab("")+
+  ylab(expression(bold(log[10]) * bold("(SSC, mg/L)"))) + xlab("")+ 
+  theme(legend.position="bottom",
+        axis.text=element_text(size=18),
+        axis.title=element_text(size=20,face="bold"),
+        plot.title = element_text(size = 25, face = "bold"),
+        strip.text.x = element_text(size = 20))+
+  theme(legend.position="bottom", legend.text = element_text(size = 16),  # Adjust size for legend entries
+        legend.title = element_text(size = 22))+
+  geom_text(data = data_text, size = 6,
+            mapping = aes(x = x,
+                          y = y,
+                          label = label,hjust = c(0.9,-0.1,0,-0.04)))
+
+#defense plot -- red vs. blue
 ggplot(refl_long_back[refl_long_back$year <= 2012,] ,aes(y = logSSC, x = DamStatus))+
   geom_boxplot(aes(group = DamStatus, color = River),lwd =1.3) + facet_wrap(.~River,nrow = 2, ncol = 2,labeller = hum_names,scales = "free")+ theme_bw()+
   ylab("log (SSC)") + xlab("")+
@@ -292,7 +318,7 @@ ggplot(refl_long_back[refl_long_back$year <= 2012,] ,aes(y = logSSC, x = DamStat
                                 "Kali" =  "coral1",
                                 "Shar" = "red4"))
 
-#ggsave("E:/Shishir/FieldData/Results/Pre_vs_Post_v2.jpg",  width = 5, height = 3, scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/Pre_vs_Post_v3_Log10.jpg",  width = 5, height = 3, scale = 3)
 ## seasonality in SSC post-dam i.e after 2010 ### 
 
 refl_long_back$day = lubridate::yday(refl_long_back$ImgDates)
@@ -318,12 +344,32 @@ grouped_quantiles_monthly <- refl_long_back %>% filter(ImgDates >= ymd("2012-01-
 
 refl_long_back = left_join(refl_long_back, grouped_quantiles_monthly)
 
+
+# dissertation original
+ggplot(refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) ,aes(y = logSSC, x = as.Date(day)))+
+  geom_point(aes(col = year))+
+  geom_smooth(col = "black", span = 0.1)+
+  facet_wrap(.~River,nrow = 2, ncol = 2,scales = "free",labeller =  hum_names)+
+  theme_bw()+
+  ylab("log (SSC)") + xlab("Month")+ ylab(expression(bold(log[10]) * bold("(SSC, mg/L)")))+ # 07/04/23
+  #geom_hline(data = refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) %>% select(Q50, River), aes(yintercept = Q50), colour="black")
+  geom_line(aes(y = Q50_monthly),color = "black")+
+  geom_smooth(aes(y = Q50_monthly),color = "black",span = 0.1)+
+  theme(legend.position="right",
+        axis.text=element_text(size=18),
+        axis.title=element_text(size=20,face="bold"),
+        plot.title = element_text(size = 25, face = "bold"),
+        strip.text.x = element_text(size = 20))+
+  scale_x_date(date_labels = "%b",date_breaks = "35 day")
+
+
+# defense
 ggplot(refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) ,aes(y = logSSC, x = as.Date(day)))+
   geom_point(aes(col = year))+
   geom_smooth(aes(col = River), span = 0.2)+
   facet_wrap(.~River,nrow = 2, ncol = 2,scales = "free",labeller =  hum_names)+
   theme_bw()+
-  ylab("log (SSC)") + xlab("Month")+
+  ylab("log (SSC)") + xlab("Month")+ 
   #geom_hline(data = refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) %>% select(Q50, River), aes(yintercept = Q50), colour="black")
   #geom_line(aes(y = Q50_monthly),color = "black")+
  #geom_smooth(aes(y = Q50_monthly),color = River,span = 0.1)+
@@ -338,6 +384,22 @@ ggplot(refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) ,aes(y = logSSC,
                                  "Kali" =  "coral1",
                                  "Shar" = "red4"))
 
+#07/04/23
+ggplot(refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) ,aes(y = logSSC, x = as.Date(day)))+
+  geom_point(aes(col = year))+
+  geom_smooth(col = "black", span = 0.2)+
+  facet_wrap(.~River,nrow = 2, ncol = 2,scales = "free",labeller =  hum_names)+
+  theme_bw()+
+  ylab("log (SSC)") + xlab("Month")+ ylab(expression(bold(log[10]) * bold("(SSC, mg/L)")))+ # 07/04/23
+  #geom_hline(data = refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) %>% select(Q50, River), aes(yintercept = Q50), colour="black")
+  #geom_line(aes(y = Q50_monthly),color = "black")+
+  #geom_smooth(aes(y = Q50_monthly),color = "black",span = 0.1)+
+  theme(legend.position="right",
+        axis.text=element_text(size=18),
+        axis.title=element_text(size=20,face="bold"),
+        plot.title = element_text(size = 25, face = "bold"),
+        strip.text.x = element_text(size = 20))+
+  scale_x_date(date_labels = "%b",date_breaks = "35 day")
 
 
 grouped_quantiles_season <- refl_long_back %>% filter(ImgDates >= ymd("2012-01-01")) %>%
@@ -370,4 +432,5 @@ df <- df %>%
 ?geom_smooth
 
 #ggsave("E:/Shishir/FieldData/Results/SamplingSiteOnlyV4.jpg",  width = 5, height = 3, scale = 3)
+#ggsave("E:/Shishir/FieldData/Results/SamplingSiteOnlyV5_log10.jpg",  width = 5, height = 3, scale = 3)
 
